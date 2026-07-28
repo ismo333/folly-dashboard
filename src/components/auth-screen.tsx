@@ -1,0 +1,101 @@
+"use client";
+
+import { FormEvent, useState } from "react";
+
+export function AuthScreen() {
+  const [mode, setMode] = useState<"sign-in" | "join">("sign-in");
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setBusy(true);
+    setError("");
+    const form = new FormData(event.currentTarget);
+    const email = String(form.get("email") ?? "");
+    const password = String(form.get("password") ?? "");
+
+    try {
+      if (mode === "sign-in") {
+        const result = await fetch("/api/auth/sign-in", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ email, password })
+        });
+        const body = await result.json();
+        if (!result.ok) throw new Error(body.error);
+      } else {
+        const displayName = String(form.get("displayName") ?? "");
+        const inviteCode = String(form.get("inviteCode") ?? "");
+        const result = await fetch("/api/auth/sign-up", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ email, password, displayName, inviteCode })
+        });
+        const body = await result.json();
+        if (!result.ok) throw new Error(body.error);
+      }
+      window.location.assign("/");
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Could not sign in.");
+      setBusy(false);
+    }
+  }
+
+  return (
+    <main className="auth-shell">
+      <div className="auth-mark" aria-hidden="true">folly</div>
+      <section className="auth-panel">
+        <p className="eyebrow">Folly Productions</p>
+        <h1>What’s on,<br />and what we thought.</h1>
+        <p className="auth-intro">
+          A private notebook for theatre scouting in New York and London.
+        </p>
+        <div className="segmented" aria-label="Account action">
+          <button className={mode === "sign-in" ? "active" : ""} onClick={() => setMode("sign-in")}>
+            Sign in
+          </button>
+          <button className={mode === "join" ? "active" : ""} onClick={() => setMode("join")}>
+            Join with invite
+          </button>
+        </div>
+        <form onSubmit={submit} className="auth-form">
+          {mode === "join" && (
+            <label>
+              Your name
+              <input name="displayName" required minLength={2} autoComplete="name" />
+            </label>
+          )}
+          <label>
+            Email
+            <input name="email" type="email" required autoComplete="email" />
+          </label>
+          <label>
+            Password
+            <input
+              name="password"
+              type="password"
+              required
+              minLength={mode === "sign-in" ? 8 : 10}
+              autoComplete={mode === "sign-in" ? "current-password" : "new-password"}
+            />
+          </label>
+          {mode === "join" && (
+            <label>
+              Folly invite code
+              <input name="inviteCode" required minLength={6} autoComplete="off" />
+            </label>
+          )}
+          {error && <p className="form-error" role="alert">{error}</p>}
+          <button className="primary-button" disabled={busy}>
+            {busy ? "One moment…" : mode === "sign-in" ? "Enter Folly" : "Create account"}
+          </button>
+        </form>
+      </section>
+      <div className="auth-horse">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/images/folly-horse.png" alt="" />
+      </div>
+    </main>
+  );
+}

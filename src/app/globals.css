@@ -1,0 +1,861 @@
+@font-face {
+  font-family: "Sneaky Times";
+  src: url("/fonts/sneaky-times.otf") format("opentype");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Folly Satoshi";
+  src: url("/fonts/folly-satoshi.otf") format("opentype");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Satoshi Bold";
+  src: url("/fonts/satoshi-bold.otf") format("opentype");
+  font-display: swap;
+}
+
+:root {
+  --black: #050505;
+  --ivory: #fefaf2;
+  --paper: #eeeae2;
+  --red: #60202e;
+  --blue: #69acc2;
+  --yellow: #cab63c;
+  --muted: #756f66;
+  --line: rgba(5, 5, 5, 0.22);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--ivory);
+}
+
+body {
+  margin: 0;
+  background: var(--ivory);
+  color: var(--black);
+  font-family: "Satoshi Bold", Arial, sans-serif;
+}
+
+button,
+input,
+select,
+textarea {
+  color: inherit;
+  font: inherit;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  cursor: pointer;
+}
+
+.eyebrow {
+  margin: 0 0 12px;
+  font: 14px "Satoshi Bold", sans-serif;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.auth-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(220px, 0.8fr) minmax(420px, 1fr) minmax(260px, 0.8fr);
+  background: var(--red);
+  color: var(--ivory);
+  overflow: hidden;
+}
+
+.auth-mark {
+  padding: 48px;
+  font: 64px "Folly Satoshi", sans-serif;
+}
+
+.auth-panel {
+  align-self: center;
+  max-width: 560px;
+  padding: 70px 40px;
+}
+
+.auth-panel h1,
+.invite-dialog h2 {
+  margin: 0;
+  font: 400 clamp(56px, 7vw, 100px)/0.86 "Sneaky Times", serif;
+}
+
+.auth-intro {
+  max-width: 430px;
+  margin: 28px 0;
+  font-size: 20px;
+  line-height: 1.35;
+}
+
+.auth-horse {
+  align-self: end;
+  transform: translate(18%, 18%) rotate(-9deg);
+}
+
+.auth-horse img {
+  width: min(46vw, 650px);
+  filter: brightness(0) invert(1);
+}
+
+.segmented,
+.city-switch {
+  display: inline-flex;
+  border: 1px solid currentColor;
+}
+
+.segmented button,
+.city-switch button {
+  border: 0;
+  border-right: 1px solid currentColor;
+  background: transparent;
+  padding: 11px 18px;
+}
+
+.segmented button:last-child,
+.city-switch button:last-child {
+  border-right: 0;
+}
+
+.segmented button.active {
+  background: var(--ivory);
+  color: var(--red);
+}
+
+.auth-form,
+.modal-card form,
+.invite-dialog form {
+  display: grid;
+  gap: 16px;
+  margin-top: 22px;
+}
+
+.auth-form label,
+.modal-card label,
+.invite-dialog label,
+.range-row label {
+  display: grid;
+  gap: 6px;
+  font-family: "Satoshi Bold", sans-serif;
+  font-size: 13px;
+}
+
+.auth-form input,
+.modal-card input,
+.modal-card select,
+.modal-card textarea,
+.invite-dialog input {
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid currentColor;
+  background: transparent;
+  padding: 10px 2px;
+  outline: 0;
+}
+
+.auth-form input:focus,
+.modal-card input:focus,
+.modal-card select:focus,
+.modal-card textarea:focus,
+.invite-dialog input:focus {
+  border-bottom-width: 3px;
+}
+
+.primary-button,
+.refresh-button,
+.small-button {
+  border: 1px solid var(--black);
+  background: var(--black);
+  color: var(--ivory);
+  padding: 13px 20px;
+  font-family: "Satoshi Bold", sans-serif;
+}
+
+.primary-button:disabled,
+.refresh-button:disabled,
+.small-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.auth-form .primary-button {
+  margin-top: 8px;
+  background: var(--ivory);
+  color: var(--red);
+  border-color: var(--ivory);
+}
+
+.text-button {
+  border: 0;
+  background: transparent;
+  padding: 8px 0;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.text-button.light {
+  color: var(--ivory);
+}
+
+.form-error {
+  margin: 0;
+  color: #ffb3b3;
+  font-family: "Satoshi Bold", sans-serif;
+}
+
+.dashboard {
+  min-height: 100vh;
+  padding-bottom: 90px;
+}
+
+.dashboard-header {
+  position: sticky;
+  z-index: 10;
+  top: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 82px;
+  padding: 16px 3vw;
+  background: var(--black);
+  color: var(--ivory);
+}
+
+.brand-lockup {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.brand-word {
+  font-family: "Folly Satoshi", sans-serif;
+  font-size: 36px;
+  line-height: 1;
+}
+
+.brand-rule {
+  width: 1px;
+  height: 36px;
+  background: var(--ivory);
+}
+
+.brand-product {
+  font: 24px "Sneaky Times", serif;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+
+.refresh-button {
+  border-color: var(--ivory);
+  background: var(--ivory);
+  color: var(--black);
+  min-width: 180px;
+}
+
+.refresh-button span {
+  display: inline-block;
+  margin-right: 8px;
+  font-size: 20px;
+}
+
+.spin {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.setup-banner,
+.refresh-result {
+  padding: 12px 3vw;
+  background: var(--yellow);
+  border-bottom: 1px solid var(--black);
+}
+
+.refresh-result {
+  background: var(--blue);
+}
+
+.intro-row {
+  display: grid;
+  grid-template-columns: 1.5fr 0.7fr;
+  gap: 6vw;
+  align-items: end;
+  padding: 74px 3vw 54px;
+}
+
+.intro-row h1 {
+  margin: 0;
+  font: 400 clamp(66px, 9vw, 140px)/0.79 "Sneaky Times", serif;
+  letter-spacing: -0.03em;
+}
+
+.intro-row h1 i {
+  color: var(--red);
+  font-weight: 400;
+}
+
+.intro-row p {
+  max-width: 430px;
+  margin: 0 0 8px;
+  font-size: clamp(18px, 2vw, 28px);
+  line-height: 1.15;
+}
+
+.view-tabs {
+  display: flex;
+  padding: 0 3vw;
+  border-bottom: 1px solid var(--black);
+}
+
+.view-tabs button {
+  border: 1px solid var(--black);
+  border-bottom: 0;
+  background: transparent;
+  padding: 14px 22px;
+  margin-right: -1px;
+  font-family: "Satoshi Bold", sans-serif;
+}
+
+.view-tabs button.active {
+  background: var(--black);
+  color: var(--ivory);
+}
+
+.filter-panel {
+  display: grid;
+  gap: 18px;
+  padding: 26px 3vw;
+  background: var(--paper);
+  border-bottom: 1px solid var(--black);
+}
+
+.city-switch button.active {
+  background: var(--red);
+  color: var(--ivory);
+}
+
+.tier-row,
+.range-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.chip {
+  border: 1px solid var(--black);
+  border-radius: 999px;
+  background: transparent;
+  padding: 8px 14px;
+}
+
+.chip.active {
+  background: var(--blue);
+}
+
+.check-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 8px;
+}
+
+.range-row {
+  gap: 18px;
+}
+
+.range-row input {
+  min-height: 40px;
+  border: 1px solid var(--black);
+  background: var(--ivory);
+  padding: 7px 10px;
+}
+
+.search-field {
+  flex: 1;
+  min-width: 260px;
+  margin-left: auto;
+}
+
+.results-heading {
+  display: flex;
+  justify-content: space-between;
+  padding: 18px 3vw;
+  border-bottom: 1px solid var(--black);
+  font-family: "Satoshi Bold", sans-serif;
+}
+
+.show-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.show-card {
+  min-height: 420px;
+  display: flex;
+  flex-direction: column;
+  padding: 22px;
+  border-right: 1px solid var(--black);
+  border-bottom: 1px solid var(--black);
+  transition: transform 150ms ease, box-shadow 150ms ease;
+  cursor: pointer;
+}
+
+.show-card:nth-child(3n) {
+  border-right: 0;
+}
+
+.show-card:hover {
+  position: relative;
+  z-index: 1;
+  transform: translate(-4px, -4px);
+  box-shadow: 8px 8px 0 var(--black);
+}
+
+.color-0 { background: var(--ivory); }
+.color-1 { background: var(--blue); }
+.color-2 { background: var(--yellow); }
+.color-3 { background: #d8c9c0; }
+
+.card-topline,
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font: 12px "Satoshi Bold", sans-serif;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.show-card h2 {
+  margin: 48px 0 6px;
+  font: 400 clamp(38px, 4vw, 62px)/0.9 "Sneaky Times", serif;
+  letter-spacing: -0.02em;
+}
+
+.venue {
+  margin: 8px 0;
+  font-family: "Satoshi Bold", sans-serif;
+}
+
+.run-dates {
+  min-height: 48px;
+  margin: 8px 0 18px;
+  line-height: 1.4;
+}
+
+.notable {
+  padding-top: 12px;
+  border-top: 1px solid rgba(5, 5, 5, 0.35);
+  font-size: 14px;
+}
+
+.notable p {
+  margin: 4px 0;
+}
+
+.notable b {
+  display: inline-block;
+  margin-right: 6px;
+  text-transform: uppercase;
+  font-size: 11px;
+}
+
+.card-footer {
+  margin-top: auto;
+  padding-top: 18px;
+}
+
+.empty-state {
+  display: grid;
+  place-items: center;
+  min-height: 280px;
+  font: 42px "Sneaky Times", serif;
+}
+
+.empty-state button {
+  border: 0;
+  background: transparent;
+  text-decoration: underline;
+}
+
+.drawer-backdrop {
+  position: fixed;
+  z-index: 50;
+  inset: 0;
+  display: flex;
+  justify-content: flex-end;
+  background: rgba(0, 0, 0, 0.68);
+}
+
+.show-drawer {
+  position: relative;
+  width: min(720px, 100%);
+  height: 100vh;
+  overflow-y: auto;
+  padding: 54px clamp(24px, 5vw, 64px) 90px;
+  background: var(--ivory);
+  box-shadow: -10px 0 0 var(--blue);
+}
+
+.drawer-close {
+  position: absolute;
+  top: 18px;
+  right: 24px;
+  border: 0;
+  background: transparent;
+  font: 38px/1 "Folly Satoshi", sans-serif;
+}
+
+.show-drawer > h2 {
+  margin: 0;
+  font: 400 clamp(54px, 8vw, 96px)/0.88 "Sneaky Times", serif;
+}
+
+.drawer-venue {
+  margin: 12px 0 30px;
+  font: 20px "Satoshi Bold", sans-serif;
+}
+
+.date-table {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border: 1px solid var(--black);
+}
+
+.date-table div {
+  min-height: 96px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 12px;
+  border-right: 1px solid var(--black);
+}
+
+.date-table div:last-child {
+  border-right: 0;
+}
+
+.date-table span,
+.credits span,
+.invite-code span,
+.invite-code small {
+  font: 11px "Satoshi Bold", sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.credits {
+  margin: 26px 0;
+  columns: 2;
+}
+
+.credits p {
+  break-inside: avoid;
+  margin: 0 0 14px;
+}
+
+.credits span {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--muted);
+}
+
+.synopsis {
+  font: 28px/1.15 "Sneaky Times", serif;
+}
+
+.source-links {
+  display: flex;
+  gap: 22px;
+  margin: 24px 0 42px;
+}
+
+.source-links a {
+  color: var(--red);
+  font-family: "Satoshi Bold", sans-serif;
+}
+
+.review-section {
+  padding-top: 28px;
+  border-top: 3px solid var(--black);
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.section-title h3 {
+  margin: 0;
+  font: 36px "Sneaky Times", serif;
+}
+
+.small-button {
+  padding: 9px 14px;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.review-block {
+  margin-top: 18px;
+  padding: 20px;
+  border: 1px solid var(--black);
+}
+
+.private-review {
+  background: var(--red);
+  color: var(--ivory);
+}
+
+.review-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 13px;
+}
+
+.review-meta > span {
+  font: 11px "Satoshi Bold", sans-serif;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.rating {
+  margin: 16px 0 8px;
+  letter-spacing: 4px;
+}
+
+.review-block > p {
+  font-size: 18px;
+  line-height: 1.45;
+}
+
+.review-actions {
+  display: flex;
+  gap: 16px;
+}
+
+.review-actions button,
+.comment button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  font-size: 12px;
+  text-decoration: underline;
+}
+
+.comment {
+  margin: 14px 0 0 24px;
+  padding: 12px 0 0 14px;
+  border-left: 3px solid currentColor;
+}
+
+.comment p {
+  margin: 0 0 6px;
+}
+
+.comment-form {
+  display: flex;
+  margin-top: 14px;
+}
+
+.comment-form input {
+  flex: 1;
+  border: 1px solid var(--black);
+  padding: 10px;
+}
+
+.comment-form button {
+  border: 1px solid var(--black);
+  background: var(--black);
+  color: var(--ivory);
+  padding: 10px 14px;
+}
+
+.modal-card {
+  position: fixed;
+  z-index: 60;
+  inset: 5vh max(20px, calc((100vw - 600px) / 2));
+  overflow-y: auto;
+  padding: 34px;
+  background: var(--blue);
+  border: 2px solid var(--black);
+  box-shadow: 10px 10px 0 var(--black);
+}
+
+.invite-dialog {
+  position: relative;
+  align-self: center;
+  margin: auto;
+  width: min(580px, calc(100% - 40px));
+  padding: 44px;
+  background: var(--yellow);
+  border: 2px solid var(--black);
+  box-shadow: 10px 10px 0 var(--ivory);
+}
+
+.invite-dialog h2 {
+  font-size: 72px;
+}
+
+.invite-code {
+  display: grid;
+  gap: 8px;
+  margin-top: 24px;
+  padding: 18px;
+  border: 2px solid var(--black);
+  background: var(--ivory);
+}
+
+.invite-code b {
+  font: 36px "Sneaky Times", serif;
+}
+
+@media (max-width: 980px) {
+  .auth-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-mark {
+    padding: 24px;
+  }
+
+  .auth-panel {
+    padding: 20px 24px 70px;
+  }
+
+  .auth-horse {
+    display: none;
+  }
+
+  .intro-row {
+    grid-template-columns: 1fr;
+  }
+
+  .intro-row p {
+    margin-top: 20px;
+  }
+
+  .show-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .show-card:nth-child(3n) {
+    border-right: 1px solid var(--black);
+  }
+
+  .show-card:nth-child(2n) {
+    border-right: 0;
+  }
+}
+
+@media (max-width: 680px) {
+  .dashboard-header {
+    position: relative;
+    align-items: flex-start;
+  }
+
+  .brand-product,
+  .brand-rule,
+  .header-actions .text-button {
+    display: none;
+  }
+
+  .intro-row {
+    padding-top: 48px;
+  }
+
+  .intro-row h1 {
+    font-size: 64px;
+  }
+
+  .view-tabs {
+    overflow-x: auto;
+  }
+
+  .view-tabs button {
+    white-space: nowrap;
+  }
+
+  .range-row {
+    align-items: end;
+  }
+
+  .range-row > span {
+    display: none;
+  }
+
+  .search-field {
+    flex-basis: 100%;
+    margin-left: 0;
+  }
+
+  .show-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .show-card,
+  .show-card:nth-child(2n),
+  .show-card:nth-child(3n) {
+    min-height: 360px;
+    border-right: 0;
+  }
+
+  .show-card h2 {
+    font-size: 48px;
+  }
+
+  .results-heading {
+    gap: 20px;
+    font-size: 12px;
+  }
+
+  .date-table {
+    grid-template-columns: 1fr;
+  }
+
+  .date-table div {
+    border-right: 0;
+    border-bottom: 1px solid var(--black);
+  }
+
+  .date-table div:last-child {
+    border-bottom: 0;
+  }
+
+  .credits {
+    columns: 1;
+  }
+
+  .review-meta {
+    display: grid;
+  }
+
+  .modal-card {
+    inset: 3vh 14px;
+    padding: 24px;
+  }
+}

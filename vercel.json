@@ -1,3 +1,4 @@
 {
-  "rewrites": [{ "source": "/", "destination": "/whats-on-dashboard.html" }]
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs"
 }
