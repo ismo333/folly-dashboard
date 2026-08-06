@@ -182,7 +182,7 @@ export function Dashboard({
       )}
 
       <section className="intro-row">
-        <h1>Theatre worth<br /><i>knowing about.</i></h1>
+        <h1>Your<br /><i>bicoastal guide</i></h1>
         <p>
           New York and London listings, exact dates, notable artists, and the notes we
           want to remember.
