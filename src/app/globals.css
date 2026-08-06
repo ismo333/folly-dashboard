@@ -71,7 +71,7 @@ button {
   min-height: 100vh;
   padding-bottom: 148px;
   display: grid;
-  grid-template-columns: minmax(220px, 0.8fr) minmax(420px, 1fr) minmax(260px, 0.8fr);
+  grid-template-columns: minmax(180px, 0.65fr) minmax(540px, 1fr) minmax(180px, 0.65fr);
   background: var(--red);
   color: var(--ivory);
   overflow: hidden;
@@ -95,7 +95,13 @@ button {
 .auth-panel h1,
 .invite-dialog h2 {
   margin: 0;
-  font: 400 clamp(44px, 5.2vw, 76px)/0.92 "Sneaky Times", serif;
+  font: 400 clamp(42px, 3.8vw, 52px)/0.9 "Sneaky Times", serif;
+}
+
+.two-line-headline > span,
+.two-line-headline > i {
+  display: block;
+  white-space: nowrap;
 }
 
 .auth-intro {
@@ -404,15 +410,15 @@ button {
 
 .intro-row {
   display: grid;
-  grid-template-columns: 1.5fr 0.7fr;
-  gap: 6vw;
+  grid-template-columns: minmax(0, 2.2fr) minmax(220px, 0.55fr);
+  gap: 4vw;
   align-items: end;
   padding: 74px 3vw 54px;
 }
 
 .intro-row h1 {
   margin: 0;
-  font: 400 clamp(66px, 9vw, 140px)/0.79 "Sneaky Times", serif;
+  font: 400 clamp(52px, 5vw, 72px)/0.86 "Sneaky Times", serif;
   letter-spacing: -0.03em;
 }
 
@@ -895,6 +901,11 @@ button {
 }
 
 @media (max-width: 680px) {
+  .two-line-headline > span,
+  .two-line-headline > i {
+    white-space: normal;
+  }
+
   .dashboard-header {
     position: relative;
     align-items: flex-start;
@@ -911,7 +922,7 @@ button {
   }
 
   .intro-row h1 {
-    font-size: 64px;
+    font-size: 52px;
   }
 
   .view-tabs {

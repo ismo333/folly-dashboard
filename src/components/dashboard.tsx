@@ -182,7 +182,10 @@ export function Dashboard({
       )}
 
       <section className="intro-row">
-        <h1>See what’s on.<br /><i>Tell us what you thought.</i></h1>
+        <h1 className="two-line-headline">
+          <span>See what’s on.</span>
+          <i>Tell us what you thought.</i>
+        </h1>
         <p>
           New York and London listings, exact dates, notable artists, and the notes we
           want to remember.
