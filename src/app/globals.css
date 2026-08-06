@@ -82,31 +82,33 @@ button {
 
 .auth-panel {
   align-self: center;
-  max-width: 560px;
-  padding: 70px 40px;
+  max-width: 620px;
+  padding: 52px 40px;
 }
 
 .auth-panel h1,
 .invite-dialog h2 {
   margin: 0;
-  font: 400 clamp(56px, 7vw, 100px)/0.86 "Sneaky Times", serif;
+  font: 400 clamp(44px, 5.2vw, 76px)/0.92 "Sneaky Times", serif;
 }
 
 .auth-intro {
   max-width: 430px;
-  margin: 28px 0;
-  font-size: 20px;
+  margin: 22px 0;
+  font-size: 18px;
   line-height: 1.35;
 }
 
 .auth-horse {
   align-self: end;
-  transform: translate(18%, 18%) rotate(-9deg);
+  justify-self: end;
+  transform: translate(4%, 4%) rotate(-3deg);
 }
 
 .auth-horse img {
-  width: min(46vw, 650px);
-  filter: brightness(0) invert(1);
+  display: block;
+  width: min(36vw, 520px);
+  height: auto;
 }
 
 .segmented,
@@ -170,6 +172,22 @@ button {
 .modal-card textarea:focus,
 .invite-dialog input:focus {
   border-bottom-width: 3px;
+}
+
+.auth-form .remember-me {
+  display: flex;
+  width: fit-content;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.auth-form .remember-me input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  padding: 0;
+  accent-color: var(--ivory);
 }
 
 .primary-button,

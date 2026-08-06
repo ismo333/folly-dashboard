@@ -27,7 +27,7 @@ function hashToken(token: string) {
   return createHash("sha256").update(token).digest("hex");
 }
 
-export async function createSession(profileId: string) {
+export async function createSession(profileId: string, rememberMe = true) {
   const token = randomBytes(32).toString("base64url");
   const expires = new Date(Date.now() + sessionDays * 86_400_000);
   const sql = db();
@@ -42,7 +42,7 @@ export async function createSession(profileId: string) {
     sameSite: "strict",
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    expires
+    ...(rememberMe ? { expires } : {})
   });
 }
 

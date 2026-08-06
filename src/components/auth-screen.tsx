@@ -14,13 +14,14 @@ export function AuthScreen() {
     const form = new FormData(event.currentTarget);
     const email = String(form.get("email") ?? "");
     const password = String(form.get("password") ?? "");
+    const rememberMe = form.get("rememberMe") === "on";
 
     try {
       if (mode === "sign-in") {
         const result = await fetch("/api/auth/sign-in", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ email, password })
+          body: JSON.stringify({ email, password, rememberMe })
         });
         const body = await result.json();
         if (!result.ok) throw new Error(body.error);
@@ -80,6 +81,12 @@ export function AuthScreen() {
               autoComplete={mode === "sign-in" ? "current-password" : "new-password"}
             />
           </label>
+          {mode === "sign-in" && (
+            <label className="remember-me">
+              <input name="rememberMe" type="checkbox" defaultChecked />
+              <span>Remember me</span>
+            </label>
+          )}
           {mode === "join" && (
             <label>
               Folly invite code

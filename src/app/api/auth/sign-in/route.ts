@@ -6,7 +6,8 @@ import { apiError } from "@/lib/http";
 
 const schema = z.object({
   email: z.email().transform((value) => value.toLowerCase()),
-  password: z.string().min(8).max(200)
+  password: z.string().min(8).max(200),
+  rememberMe: z.boolean().default(true)
 });
 
 export async function POST(request: Request) {
@@ -22,7 +23,7 @@ export async function POST(request: Request) {
     if (!valid) {
       return NextResponse.json({ error: "Email or password is incorrect." }, { status: 401 });
     }
-    await createSession(String(rows[0].id));
+    await createSession(String(rows[0].id), input.rememberMe);
     return NextResponse.json({ signedIn: true });
   } catch (error) {
     if (error instanceof z.ZodError) {
