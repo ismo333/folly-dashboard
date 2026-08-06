@@ -6,6 +6,7 @@ export function AuthScreen() {
   const [mode, setMode] = useState<"sign-in" | "join">("sign-in");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -73,13 +74,28 @@ export function AuthScreen() {
           </label>
           <label>
             Password
-            <input
-              name="password"
-              type="password"
-              required
-              minLength={mode === "sign-in" ? 8 : 10}
-              autoComplete={mode === "sign-in" ? "current-password" : "new-password"}
-            />
+            <span className="password-input">
+              <input
+                name="password"
+                type={showPassword ? "text" : "password"}
+                required
+                minLength={mode === "sign-in" ? 8 : 10}
+                autoComplete={mode === "sign-in" ? "current-password" : "new-password"}
+              />
+              <button
+                type="button"
+                className="password-toggle"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                aria-pressed={showPassword}
+                onClick={() => setShowPassword((visible) => !visible)}
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6S2.5 12 2.5 12Z" />
+                  <circle cx="12" cy="12" r="2.5" />
+                  {showPassword && <path d="m4 4 16 16" />}
+                </svg>
+              </button>
+            </span>
           </label>
           {mode === "sign-in" && (
             <label className="remember-me">

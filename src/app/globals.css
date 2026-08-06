@@ -86,6 +86,10 @@ button {
   padding: 52px 40px;
 }
 
+.auth-panel > .eyebrow {
+  text-align: center;
+}
+
 .auth-panel h1,
 .invite-dialog h2 {
   margin: 0;
@@ -188,6 +192,43 @@ button {
   margin: 0;
   padding: 0;
   accent-color: var(--ivory);
+}
+
+.password-input {
+  position: relative;
+  display: block;
+}
+
+.auth-form .password-input input {
+  padding-right: 46px;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  display: grid;
+  width: 42px;
+  height: 100%;
+  min-height: 40px;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  color: inherit;
+}
+
+.password-toggle svg {
+  width: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.6;
+}
+
+.password-toggle:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: -4px;
 }
 
 .primary-button,
