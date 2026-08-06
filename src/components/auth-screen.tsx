@@ -49,7 +49,7 @@ export function AuthScreen() {
       <div className="auth-mark" aria-hidden="true">folly</div>
       <section className="auth-panel">
         <p className="eyebrow">Folly Productions</p>
-        <h1>What’s on,<br />and what we thought.</h1>
+        <h1>See what’s on.<br /><i>Tell us what you thought.</i></h1>
         <p className="auth-intro">
           A private notebook for theatre scouting in New York and London.
         </p>
