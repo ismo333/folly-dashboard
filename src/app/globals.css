@@ -122,7 +122,7 @@ button {
   position: absolute;
   bottom: -2px;
   left: 0;
-  width: clamp(96px, 9vw, 128px);
+  width: clamp(76px, 7vw, 100px);
   animation: auth-horse-cross 14s linear infinite;
   will-change: transform;
 }
@@ -132,7 +132,7 @@ button {
   width: 100%;
   height: auto;
   animation: auth-horse-bob 650ms ease-in-out infinite alternate;
-  transform-origin: 50% 100%;
+  transform-origin: 50% 50%;
 }
 
 .auth-footer p {
@@ -153,11 +153,11 @@ button {
 
 @keyframes auth-horse-bob {
   from {
-    transform: translateY(1px) rotate(-3deg);
+    transform: rotate(-3deg);
   }
 
   to {
-    transform: translateY(-4px) rotate(3deg);
+    transform: rotate(3deg);
   }
 }
 
