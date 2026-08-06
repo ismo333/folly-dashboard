@@ -46,9 +46,11 @@ export function AuthScreen() {
 
   return (
     <main className="auth-shell">
-      <div className="auth-mark" aria-hidden="true">folly</div>
-      <section className="auth-panel">
+      <header className="auth-brand">
+        <div className="auth-mark" aria-hidden="true">folly</div>
         <p className="eyebrow">Folly Productions</p>
+      </header>
+      <section className="auth-panel">
         <h1 className="two-line-headline">
           <span>See what’s on.</span>
           <i>Tell us what you thought.</i>

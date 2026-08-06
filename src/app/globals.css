@@ -77,19 +77,22 @@ button {
   overflow: hidden;
 }
 
-.auth-mark {
+.auth-brand {
   padding: 48px;
+}
+
+.auth-mark {
   font: 64px "Folly Satoshi", sans-serif;
+}
+
+.auth-brand .eyebrow {
+  margin-top: 16px;
 }
 
 .auth-panel {
   align-self: center;
   max-width: 620px;
   padding: 52px 40px;
-}
-
-.auth-panel > .eyebrow {
-  text-align: center;
 }
 
 .auth-panel h1,
@@ -855,7 +858,7 @@ button {
     grid-template-columns: 1fr;
   }
 
-  .auth-mark {
+  .auth-brand {
     padding: 24px;
   }
 
