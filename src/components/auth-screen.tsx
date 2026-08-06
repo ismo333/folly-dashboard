@@ -115,10 +115,15 @@ export function AuthScreen() {
           </button>
         </form>
       </section>
-      <div className="auth-horse">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/images/folly-horse.png" alt="" />
-      </div>
+      <footer className="auth-footer">
+        <div className="auth-horse-track" aria-hidden="true">
+          <div className="auth-horse-runner">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/images/folly-horse.png" alt="" />
+          </div>
+        </div>
+        <p>Based in London &amp; New York</p>
+      </footer>
     </main>
   );
 }
