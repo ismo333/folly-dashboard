@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { FOLLY_PRODUCTIONS_URL } from "@/lib/links";
 
 export function AuthScreen() {
   const [mode, setMode] = useState<"sign-in" | "join">("sign-in");
@@ -47,8 +48,14 @@ export function AuthScreen() {
   return (
     <main className="auth-shell">
       <header className="auth-brand">
-        <div className="auth-mark" aria-hidden="true">folly</div>
-        <p className="eyebrow">Folly Productions</p>
+        <a
+          className="brand-home-link"
+          href={FOLLY_PRODUCTIONS_URL}
+          aria-label="Folly Productions website"
+        >
+          <span className="auth-mark" aria-hidden="true">folly</span>
+          <span className="eyebrow">Folly Productions</span>
+        </a>
       </header>
       <section className="auth-panel">
         <h1 className="two-line-headline">

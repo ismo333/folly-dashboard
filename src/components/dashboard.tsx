@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
+import { FOLLY_PRODUCTIONS_URL } from "@/lib/links";
 import type { Profile, RefreshSummary, Review, Show } from "@/lib/types";
 
 const tierLabels: Record<string, string> = {
@@ -143,7 +144,13 @@ export function Dashboard({
     <main className="dashboard">
       <header className="dashboard-header">
         <div className="brand-lockup">
-          <span className="brand-word">folly</span>
+          <a
+            className="brand-word brand-home-link"
+            href={FOLLY_PRODUCTIONS_URL}
+            aria-label="Folly Productions website"
+          >
+            folly
+          </a>
           <span className="brand-rule" />
           <span className="brand-product">What’s On</span>
         </div>
