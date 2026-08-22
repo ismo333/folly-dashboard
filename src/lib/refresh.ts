@@ -17,6 +17,7 @@ type Candidate = {
   cast?: string | null;
   ticketUrl?: string | null;
   sourceUrl: string;
+  detailUrl?: string | null;
 };
 
 const sources = [
@@ -150,30 +151,71 @@ function playbillArticle(html: string, source: (typeof sources)[number]): Candid
   return candidates;
 }
 
-function playbillCards(html: string, source: (typeof sources)[number]): Candidate[] {
+export function playbillCards(html: string, source: (typeof sources)[number]): Candidate[] {
   const $ = cheerio.load(html);
   const candidates: Candidate[] = [];
-  $('a[href*="/production/"]').each((_, element) => {
+  $('h3 a[href*="/production/"]').each((_, element) => {
     const anchor = $(element);
     const title = anchor.text().replace(/\s+/g, " ").trim();
     if (!title || title.length > 140) return;
-    const card = anchor.closest("article, li, .bsp-list-promo, .production");
+    const card = anchor.closest("h3").parent();
     const text = card.text().replace(/\s+/g, " ").trim();
-    const venue =
-      card.find('[class*="venue"]').first().text().trim() ||
-      text.match(/(?:at|@)\s+([^|·]+?Theatre)/i)?.[1] ||
-      null;
+    const previews = text.match(/Begins Previews\s+([A-Z][a-z]{2}\s+\d{1,2},\s+\d{4})/i)?.[1];
+    const opens = text.match(/Opens\s+([A-Z][a-z]{2}\s+\d{1,2},\s+\d{4})/i)?.[1];
+    const closes = text.match(/Closes\s+([A-Z][a-z]{2}\s+\d{1,2},\s+\d{4})/i)?.[1];
+    const venue = card.find("ul li:not([role='presentation'])").last().text().trim() || null;
+    const detailUrl = absoluteUrl(anchor.attr("href"), source.url);
+    const buyLink = card.find("a[href]").filter((__, link) => {
+      const href = $(link).attr("href") || "";
+      return !href.includes("playbill.com") && !href.startsWith("/production/");
+    }).last();
     candidates.push({
       title,
       city: source.city,
       tier: source.tier,
       venue,
-      status: source.status,
-      ticketUrl: absoluteUrl(anchor.attr("href"), source.url),
-      sourceUrl: source.url
+      status: previews ? "Upcoming" : source.status,
+      previewsFrom: parseDate(previews),
+      opening: parseDate(opens),
+      closing: parseDate(closes),
+      ticketUrl: absoluteUrl(buyLink.attr("href"), source.url) || detailUrl,
+      sourceUrl: source.url,
+      detailUrl
     });
   });
   return candidates;
+}
+
+export function playbillProductionDates(html: string) {
+  const $ = cheerio.load(html);
+  const text = $("body").text().replace(/\s+/g, " ").trim();
+  const dateAfter = (label: string) => {
+    const match = text.match(new RegExp(`${label}\\s*([A-Z]{3,9})\\s*(\\d{1,2})\\s*(\\d{4})`, "i"));
+    return match ? parseDate(`${match[1]} ${match[2]}, ${match[3]}`) : null;
+  };
+  return {
+    previewsFrom: dateAfter("FIRST PREVIEW"),
+    opening: dateAfter("OPENING DATE"),
+    closing: dateAfter("CLOSING DATE")
+  };
+}
+
+async function fetchPlaybillProductionDates(url: string) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 8_000);
+  try {
+    const response = await fetch(url, {
+      headers: {
+        "user-agent": "Folly Productions listings refresh/1.0 (+https://www.follyproductions.com)"
+      },
+      cache: "no-store",
+      signal: controller.signal
+    });
+    if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
+    return playbillProductionDates(await response.text());
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 function royalCourt(html: string, source: (typeof sources)[number]): Candidate[] {
@@ -248,6 +290,26 @@ async function fetchSource(source: (typeof sources)[number]) {
         : source.kind === "royal-court"
           ? royalCourt(html, source)
           : genericCards(html, source);
+    if (source.kind === "playbill-cards") {
+      const detailed = raw.filter(
+        (candidate): candidate is Candidate & { detailUrl: string } => Boolean(candidate.detailUrl)
+      );
+      let nextDetail = 0;
+      const workerCount = Math.min(12, detailed.length);
+      await Promise.all(Array.from({ length: workerCount }, async () => {
+        while (nextDetail < detailed.length) {
+          const candidate = detailed[nextDetail++];
+          try {
+            const dates = await fetchPlaybillProductionDates(candidate.detailUrl);
+            candidate.previewsFrom = dates.previewsFrom || candidate.previewsFrom;
+            candidate.opening = dates.opening || candidate.opening;
+            candidate.closing = dates.closing || candidate.closing;
+          } catch {
+            // Catalogue dates remain useful if a detail page is temporarily unavailable.
+          }
+        }
+      }));
+    }
     const unique = new Map<string, Candidate>();
     for (const candidate of raw) {
       const key = normalized(candidate.title);
