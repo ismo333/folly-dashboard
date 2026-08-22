@@ -25,6 +25,32 @@ function startDate(show: Show) {
   return show.previewsFrom || show.opening;
 }
 
+function todayIso() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function isClosingSoon(show: Show) {
+  if (!show.closing || show.archived) return false;
+  const days = Math.ceil(
+    (new Date(`${show.closing}T12:00:00`).getTime() - new Date(`${todayIso()}T12:00:00`).getTime()) /
+      86_400_000
+  );
+  return days >= 0 && days <= 30;
+}
+
+function sortShows(a: Show, b: Show, pastOnly: boolean) {
+  if (pastOnly) {
+    return (b.closing || "").localeCompare(a.closing || "") || a.title.localeCompare(b.title);
+  }
+  if (a.archived !== b.archived) return a.archived ? 1 : -1;
+  if (a.closing && b.closing) {
+    return a.closing.localeCompare(b.closing) || a.title.localeCompare(b.title);
+  }
+  if (a.closing !== b.closing) return a.closing ? -1 : 1;
+  return (startDate(a) || "9999-12-31").localeCompare(startDate(b) || "9999-12-31") ||
+    a.title.localeCompare(b.title);
+}
+
 function overlaps(show: Show, from: string, to: string) {
   const starts = startDate(show);
   if (to && starts && starts > to) return false;
@@ -33,10 +59,22 @@ function overlaps(show: Show, from: string, to: string) {
 }
 
 function exactRun(show: Show) {
+  const today = todayIso();
+  const runStart = startDate(show);
+  if (show.archived) {
+    if (runStart && show.closing) {
+      return `Ran ${formatDate(runStart)} – ${formatDate(show.closing)}`;
+    }
+    return show.closing ? `Closed ${formatDate(show.closing)}` : "Past production";
+  }
   const parts = [
-    show.previewsFrom ? `Previews ${formatDate(show.previewsFrom)}` : null,
-    show.opening ? `Opens ${formatDate(show.opening)}` : null,
-    show.closing ? `Until ${formatDate(show.closing)}` : "Open-ended run"
+    show.previewsFrom
+      ? `${show.previewsFrom < today ? "Previews began" : "Previews from"} ${formatDate(show.previewsFrom)}`
+      : null,
+    show.opening
+      ? `${show.opening < today ? "Opened" : "Opens"} ${formatDate(show.opening)}`
+      : null,
+    show.closing ? `Closes ${formatDate(show.closing)}` : "Closing date not announced"
   ].filter(Boolean);
   return parts.join(" · ");
 }
@@ -69,7 +107,7 @@ export function Dashboard({
   const [newOnly, setNewOnly] = useState(false);
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
-  const [view, setView] = useState<"listings" | "seen" | "private">("listings");
+  const [view, setView] = useState<"listings" | "favourites" | "seen" | "past" | "private">("listings");
   const [selected, setSelected] = useState<Show | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [refreshResult, setRefreshResult] = useState<RefreshSummary | null>(null);
@@ -82,7 +120,10 @@ export function Dashboard({
   const filtered = useMemo(() => {
     const normalized = query.trim().toLowerCase();
     return shows.filter((show) => {
-      if (show.city !== city || !tiers.has(show.tier) || show.archived) return false;
+      if (show.city !== city || !tiers.has(show.tier)) return false;
+      if (view === "listings" && show.archived) return false;
+      if (view === "past" && !show.archived) return false;
+      if (view === "favourites" && !show.isFavourite) return false;
       if (newOnly && show.newWriting !== true) return false;
       if (!overlaps(show, from, to)) return false;
       if (view === "seen" && !show.reviews.some((review) => review.authorId === viewer?.id)) {
@@ -105,7 +146,7 @@ export function Dashboard({
         .join(" ")
         .toLowerCase()
         .includes(normalized);
-    });
+    }).sort((a, b) => sortShows(a, b, view === "past"));
   }, [shows, city, tiers, query, newOnly, from, to, view, viewer?.id]);
 
   function changeCity(next: "nyc" | "london") {
@@ -138,6 +179,15 @@ export function Dashboard({
   function updateSelected(show: Show) {
     setSelected(show);
     setShows((current) => current.map((item) => item.id === show.id ? show : item));
+  }
+
+  async function toggleFavourite(show: Show) {
+    if (setupMode) return;
+    const next = !show.isFavourite;
+    await jsonRequest(`/api/favourites/${show.id}`, { method: next ? "PUT" : "DELETE" });
+    const updated = { ...show, isFavourite: next };
+    setShows((current) => current.map((item) => item.id === show.id ? updated : item));
+    if (selected?.id === show.id) setSelected(updated);
   }
 
   return (
@@ -203,8 +253,16 @@ export function Dashboard({
         <button className={view === "listings" ? "active" : ""} onClick={() => setView("listings")}>
           Current listings
         </button>
+        {viewer && (
+          <button className={view === "favourites" ? "active" : ""} onClick={() => setView("favourites")}>
+            My favourites
+          </button>
+        )}
         <button className={view === "seen" ? "active" : ""} onClick={() => setView("seen")}>
           My seen shows
+        </button>
+        <button className={view === "past" ? "active" : ""} onClick={() => setView("past")}>
+          Past shows
         </button>
         {viewer?.role === "owner" && (
           <button className={view === "private" ? "active" : ""} onClick={() => setView("private")}>
@@ -272,13 +330,15 @@ export function Dashboard({
             index={index}
             viewer={viewer}
             onOpen={() => setSelected(show)}
+            onToggleFavourite={() => toggleFavourite(show)}
+            setupMode={setupMode}
           />
         ))}
       </section>
 
       {filtered.length === 0 && (
         <div className="empty-state">
-          <span>Nothing in this combination—yet.</span>
+          <span>{view === "past" ? "No past shows in this combination—yet." : "Nothing in this combination—yet."}</span>
           <button onClick={() => { setFrom(""); setTo(""); setQuery(""); setNewOnly(false); }}>
             Clear filters
           </button>
@@ -292,6 +352,7 @@ export function Dashboard({
           setupMode={setupMode}
           onClose={() => setSelected(null)}
           onChange={updateSelected}
+          onToggleFavourite={() => toggleFavourite(selected)}
         />
       )}
       {inviteOpen && <InviteDialog onClose={() => setInviteOpen(false)} />}
@@ -303,19 +364,39 @@ function ShowCard({
   show,
   index,
   viewer,
-  onOpen
+  onOpen,
+  onToggleFavourite,
+  setupMode
 }: {
   show: Show;
   index: number;
   viewer: Profile | null;
   onOpen: () => void;
+  onToggleFavourite: () => void;
+  setupMode: boolean;
 }) {
   const myVisits = show.reviews.filter((review) => review.authorId === viewer?.id);
   return (
     <article className={`show-card color-${index % 4}`} onClick={onOpen}>
       <div className="card-topline">
         <span>{tierLabels[show.tier] || show.tier}</span>
-        <span>{String(index + 1).padStart(2, "0")}</span>
+        <span className="card-top-actions">
+          {isClosingSoon(show) && <span className="closing-soon">Closing soon</span>}
+          {show.archived && <span className="past-label">Past</span>}
+          <button
+            className={`favourite-button ${show.isFavourite ? "active" : ""}`}
+            disabled={setupMode}
+            aria-label={show.isFavourite ? `Remove ${show.title} from favourites` : `Add ${show.title} to favourites`}
+            aria-pressed={show.isFavourite}
+            onClick={(event) => {
+              event.stopPropagation();
+              onToggleFavourite();
+            }}
+          >
+            {show.isFavourite ? "♥" : "♡"}
+          </button>
+          <span>{String(index + 1).padStart(2, "0")}</span>
+        </span>
       </div>
       <h2>{show.title}</h2>
       <p className="venue">{show.venue || "Venue to be announced"}</p>
@@ -341,17 +422,20 @@ function ShowDrawer({
   viewer,
   setupMode,
   onClose,
-  onChange
+  onChange,
+  onToggleFavourite
 }: {
   show: Show;
   viewer: Profile | null;
   setupMode: boolean;
   onClose: () => void;
   onChange: (show: Show) => void;
+  onToggleFavourite: () => void;
 }) {
   const [editing, setEditing] = useState<Review | null>(null);
   const [adding, setAdding] = useState(false);
   const [editingPeople, setEditingPeople] = useState(false);
+  const [editingDates, setEditingDates] = useState(false);
 
   async function removeReview(review: Review) {
     if (!window.confirm(`Delete your review from ${formatDate(review.seenOn)}? This cannot be undone.`)) return;
@@ -366,12 +450,20 @@ function ShowDrawer({
       <aside className="show-drawer" role="dialog" aria-modal="true" aria-label={show.title}>
         <button className="drawer-close" onClick={onClose} aria-label="Close">×</button>
         <p className="eyebrow">{tierLabels[show.tier]} · {show.city === "nyc" ? "New York" : "London"}</p>
+        <button
+          className={`drawer-favourite favourite-button ${show.isFavourite ? "active" : ""}`}
+          disabled={setupMode}
+          aria-pressed={show.isFavourite}
+          onClick={onToggleFavourite}
+        >
+          {show.isFavourite ? "♥ Favourited" : "♡ Add to favourites"}
+        </button>
         <h2>{show.title}</h2>
         <p className="drawer-venue">{show.venue}</p>
         <div className="date-table">
           <div><span>Previews</span><b>{formatDate(show.previewsFrom) || "Not announced"}</b></div>
           <div><span>Opening</span><b>{formatDate(show.opening) || "Not announced"}</b></div>
-          <div><span>Closing</span><b>{formatDate(show.closing) || "Open-ended"}</b></div>
+          <div><span>Closing</span><b>{formatDate(show.closing) || "Not announced"}</b></div>
         </div>
         {(show.writer || show.director || show.notableCast || show.writerAcclaim) && (
           <div className="credits">
@@ -382,9 +474,14 @@ function ShowDrawer({
           </div>
         )}
         {viewer?.role === "owner" && !setupMode && (
-          <button className="text-button" onClick={() => setEditingPeople(true)}>
-            Edit notable people
-          </button>
+          <div className="owner-listing-actions">
+            <button className="text-button" onClick={() => setEditingDates(true)}>
+              Correct run dates
+            </button>
+            <button className="text-button" onClick={() => setEditingPeople(true)}>
+              Edit notable people
+            </button>
+          </div>
         )}
         {show.synopsis && <p className="synopsis">{show.synopsis}</p>}
         <div className="source-links">
@@ -426,7 +523,51 @@ function ShowDrawer({
         {editingPeople && (
           <PeopleForm show={show} onCancel={() => setEditingPeople(false)} />
         )}
+        {editingDates && (
+          <DatesForm show={show} onCancel={() => setEditingDates(false)} />
+        )}
       </aside>
+    </div>
+  );
+}
+
+function DatesForm({ show, onCancel }: { show: Show; onCancel: () => void }) {
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setBusy(true);
+    const form = new FormData(event.currentTarget);
+    const date = (name: string) => String(form.get(name) || "") || null;
+    try {
+      await jsonRequest(`/api/shows/${show.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          previewsFrom: date("previewsFrom"),
+          opening: date("opening"),
+          closing: date("closing")
+        })
+      });
+      window.location.reload();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Could not save these dates.");
+      setBusy(false);
+    }
+  }
+  return (
+    <div className="modal-card">
+      <form onSubmit={submit}>
+        <div className="section-title">
+          <h3>Correct run dates</h3>
+          <button type="button" className="text-button" onClick={onCancel}>Cancel</button>
+        </div>
+        <p className="muted">Leave a date blank when it has not been announced.</p>
+        <label>First preview<input name="previewsFrom" type="date" defaultValue={show.previewsFrom ?? ""} /></label>
+        <label>Opening night<input name="opening" type="date" defaultValue={show.opening ?? ""} /></label>
+        <label>Closing night<input name="closing" type="date" defaultValue={show.closing ?? ""} /></label>
+        {error && <p className="form-error">{error}</p>}
+        <button className="primary-button" disabled={busy}>{busy ? "Saving…" : "Save run dates"}</button>
+      </form>
     </div>
   );
 }

@@ -56,6 +56,7 @@ function seedData(): Show[] {
       sourceUrl: show.source_url,
       city: show.city,
       archived: false,
+      isFavourite: false,
       lastVerifiedAt: null,
       reviews: []
     };
@@ -87,7 +88,14 @@ export async function getShows(profile: Profile | null): Promise<Show[]> {
   );
 
   const reviewsByShow = new Map<string, Review[]>();
+  const favouriteShowIds = new Set<string>();
   if (profile) {
+    const favouriteRows = await sql.query(
+      "SELECT show_id FROM favourites WHERE profile_id = $1",
+      [profile.id]
+    );
+    for (const row of favouriteRows) favouriteShowIds.add(String(row.show_id));
+
     const reviewRows = await sql.query(
       `SELECT r.id, r.show_id, r.seen_on, r.rating, r.body, r.visibility,
               r.profile_id, r.created_at, r.updated_at, p.display_name
@@ -168,6 +176,7 @@ export async function getShows(profile: Profile | null): Promise<Show[]> {
     sourceUrl: row.source_url ? String(row.source_url) : null,
     city: row.city as Show["city"],
     archived: Boolean(row.archived),
+    isFavourite: favouriteShowIds.has(String(row.id)),
     lastVerifiedAt: row.last_verified_at ? isoTime(row.last_verified_at) : null,
     reviews: reviewsByShow.get(String(row.id)) ?? []
   }));

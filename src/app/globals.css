@@ -577,6 +577,42 @@ button {
   text-transform: uppercase;
 }
 
+.card-top-actions {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.closing-soon,
+.past-label {
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  padding: 3px 7px;
+}
+
+.closing-soon {
+  background: var(--red);
+  color: var(--ivory);
+}
+
+.favourite-button {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  font-size: 25px;
+  line-height: 1;
+}
+
+.favourite-button.active {
+  color: var(--red);
+}
+
+.favourite-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
 .show-card h2 {
   margin: 48px 0 6px;
   font: 400 clamp(38px, 4vw, 62px)/0.9 "Sneaky Times", serif;
@@ -655,6 +691,19 @@ button {
   border: 0;
   background: transparent;
   font: 38px/1 "Folly Satoshi", sans-serif;
+}
+
+.drawer-favourite {
+  margin: 0 0 18px;
+  font: 14px "Satoshi Bold", sans-serif;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.owner-listing-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 22px;
 }
 
 .show-drawer > h2 {
@@ -819,6 +868,13 @@ button {
   flex: 1;
   border: 1px solid var(--black);
   padding: 10px;
+  background: var(--ivory);
+  color: var(--black);
+}
+
+.comment-form input::placeholder {
+  color: var(--muted);
+  opacity: 1;
 }
 
 .comment-form button {

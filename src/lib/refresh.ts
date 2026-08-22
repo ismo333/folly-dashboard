@@ -88,6 +88,12 @@ const sources = [
   }
 ] as const;
 
+const authoritativeCurrentCatalogs = new Set([
+  "https://playbill.com/article/whats-currently-playing-on-broadway",
+  "https://playbill.com/shows/offbroadway",
+  "https://playbill.com/shows/london"
+]);
+
 function normalized(value: string) {
   return value
     .toLowerCase()
@@ -125,9 +131,9 @@ function playbillArticle(html: string, source: (typeof sources)[number]): Candid
       const href = $(anchor).attr("href") || "";
       return !href.includes("playbill.com/article") && !href.includes("playbill.com/venue");
     }).last();
-    const opened = text.match(/Opened\s+([A-Z][a-z]+\s+\d{1,2},\s+\d{4})/i)?.[1];
+    const opened = text.match(/Open(?:ed|ing)(?: Night)?\s+([A-Z][a-z]+\s+\d{1,2},\s+\d{4})/i)?.[1];
     const previews = text.match(/Previews(?: begin| from)?\s+([A-Z][a-z]+\s+\d{1,2},\s+\d{4})/i)?.[1];
-    const closes = text.match(/(?:Closes|Through)\s+([A-Z][a-z]+\s+\d{1,2},\s+\d{4})/i)?.[1];
+    const closes = text.match(/(?:Closes|Closing|Through)\s+([A-Z][a-z]+\s+\d{1,2},\s+\d{4})/i)?.[1];
     candidates.push({
       title,
       city: source.city,
@@ -247,7 +253,9 @@ async function fetchSource(source: (typeof sources)[number]) {
       const key = normalized(candidate.title);
       if (!unique.has(key)) unique.set(key, candidate);
     }
-    return [...unique.values()];
+    const candidates = [...unique.values()];
+    if (candidates.length === 0) throw new Error("No listings could be parsed");
+    return candidates;
   } finally {
     clearTimeout(timeout);
   }
@@ -281,8 +289,18 @@ export async function refreshListings(profile: Profile): Promise<RefreshSummary>
   try {
     const results = await Promise.allSettled(sources.map(fetchSource));
     const candidates: Candidate[] = [];
+    const successfulCurrentCatalogs = new Map<string, Set<string>>();
     results.forEach((result, index) => {
-      if (result.status === "fulfilled") candidates.push(...result.value);
+      if (result.status === "fulfilled") {
+        candidates.push(...result.value);
+        const source = sources[index];
+        if (authoritativeCurrentCatalogs.has(source.url) && result.value.length >= 5) {
+          successfulCurrentCatalogs.set(
+            source.url,
+            new Set(result.value.map((candidate) => normalized(candidate.title)))
+          );
+        }
+      }
       else summary.errors.push(`${new URL(sources[index].url).hostname}: ${result.reason instanceof Error ? result.reason.message : "failed"}`);
     });
 
@@ -293,6 +311,9 @@ export async function refreshListings(profile: Profile): Promise<RefreshSummary>
     );
     const byTitle = new Map(
       existing.map((row) => [`${row.city}:${normalized(String(row.title))}`, row])
+    );
+    const allCandidateKeys = new Set(
+      candidates.map((candidate) => `${candidate.city}:${normalized(candidate.title)}`)
     );
 
     for (const candidate of candidates) {
@@ -361,6 +382,27 @@ export async function refreshListings(profile: Profile): Promise<RefreshSummary>
       if (changed) summary.updated += 1;
     }
 
+    const missingFromCurrentCatalog = existing
+      .filter((row) => {
+        const seenTitles = successfulCurrentCatalogs.get(String(row.source_url));
+        if (!seenTitles) return false;
+        const title = normalized(String(row.title));
+        return !seenTitles.has(title) && !allCandidateKeys.has(`${row.city}:${title}`);
+      })
+      .map((row) => String(row.id));
+
+    if (missingFromCurrentCatalog.length > 0) {
+      const reconciled = await sql.query(
+        `UPDATE shows
+            SET archived=true, status='Closed', last_verified_at=now(), updated_at=now()
+          WHERE id = ANY($1::uuid[])
+            AND archived=false
+          RETURNING id`,
+        [missingFromCurrentCatalog]
+      );
+      summary.archived += reconciled.length;
+    }
+
     const archived = await sql.query(
       `UPDATE shows
           SET archived=true, updated_at=now()
@@ -368,7 +410,7 @@ export async function refreshListings(profile: Profile): Promise<RefreshSummary>
           AND closing < current_date
         RETURNING id`
     );
-    summary.archived = archived.length;
+    summary.archived += archived.length;
     summary.finishedAt = new Date().toISOString();
     const status = summary.errors.length ? "partial" : "succeeded";
     await sql.query(

@@ -73,6 +73,15 @@ CREATE TABLE IF NOT EXISTS reviews (
 CREATE INDEX IF NOT EXISTS reviews_show_idx ON reviews (show_id, seen_on DESC);
 CREATE INDEX IF NOT EXISTS reviews_profile_idx ON reviews (profile_id, seen_on DESC);
 
+CREATE TABLE IF NOT EXISTS favourites (
+  profile_id uuid NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  show_id uuid NOT NULL REFERENCES shows(id) ON DELETE CASCADE,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (profile_id, show_id)
+);
+
+CREATE INDEX IF NOT EXISTS favourites_show_idx ON favourites (show_id);
+
 CREATE TABLE IF NOT EXISTS comments (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   review_id uuid NOT NULL REFERENCES reviews(id) ON DELETE CASCADE,

@@ -55,6 +55,7 @@ export type Show = {
   sourceUrl: string | null;
   city: City;
   archived: boolean;
+  isFavourite: boolean;
   lastVerifiedAt: string | null;
   reviews: Review[];
 };

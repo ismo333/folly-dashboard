@@ -6,6 +6,8 @@ A private, shared theatre listings and review notebook for Folly Productions.
 
 - New York and London listings with exact preview, opening, and closing dates
 - Date-range, city, tier, new-writing, and text filters
+- Personal favourites and closing-soon ordering
+- A past-shows archive that remains open for visits and reviews
 - On-demand refresh against the nine existing listing sources
 - Individual reviewer accounts activated with an owner-controlled invite code
 - Multiple dated visits and reviews per person and show
@@ -39,6 +41,12 @@ Open `http://localhost:3000`.
    promoted to owners automatically after they sign up.
 5. Sign in as an owner and use **Invite reviewers** to generate the first shared
    invite code.
+
+After pulling a version with schema changes, apply them without reseeding shows:
+
+```bash
+npm run db:migrate
+```
 
 The invite code is hashed before it is stored. Changing it invalidates the old
 code without removing any existing reviewer accounts.

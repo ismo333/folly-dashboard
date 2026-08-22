@@ -4,6 +4,7 @@ import test from "node:test";
 
 const shows = JSON.parse(await readFile("src/data/seed-shows.json", "utf8"));
 const schema = await readFile("db/schema.sql", "utf8");
+const styles = await readFile("src/app/globals.css", "utf8");
 
 test("all legacy listings were migrated", () => {
   assert.equal(shows.length, 191);
@@ -25,4 +26,17 @@ test("review privacy and authorship are represented in the database", () => {
 
 test("comments are attached to reviews and removed with a deleted review", () => {
   assert.match(schema, /review_id uuid NOT NULL REFERENCES reviews\(id\) ON DELETE CASCADE/);
+});
+
+test("favourites belong to a profile and a show", () => {
+  assert.match(schema, /CREATE TABLE IF NOT EXISTS favourites/);
+  assert.match(schema, /PRIMARY KEY \(profile_id, show_id\)/);
+  assert.match(schema, /show_id uuid NOT NULL REFERENCES shows\(id\) ON DELETE CASCADE/);
+});
+
+test("comment inputs keep readable text inside private reviews", () => {
+  assert.match(
+    styles,
+    /\.comment-form input \{[^}]*background: var\(--ivory\);[^}]*color: var\(--black\);/s
+  );
 });
