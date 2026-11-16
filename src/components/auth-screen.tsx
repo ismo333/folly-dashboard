@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { FOLLY_PRODUCTIONS_URL } from "@/lib/links";
+import { SiteFooter, SiteHeader } from "@/components/site-chrome";
 
 type AuthMode = "sign-in" | "join" | "forgot" | "reset";
 
@@ -89,16 +89,7 @@ export function AuthScreen({ initialResetToken = "" }: { initialResetToken?: str
 
   return (
     <main className="auth-shell">
-      <header className="auth-brand">
-        <a
-          className="brand-home-link"
-          href={FOLLY_PRODUCTIONS_URL}
-          aria-label="Folly Productions website"
-        >
-          <span className="auth-mark" aria-hidden="true">folly</span>
-          <span className="eyebrow">Folly Productions</span>
-        </a>
-      </header>
+      <SiteHeader />
       <section className="auth-panel">
         <h1 className="two-line-headline">
           <span>See what’s on.</span>
@@ -210,15 +201,7 @@ export function AuthScreen({ initialResetToken = "" }: { initialResetToken?: str
           )}
         </form>
       </section>
-      <footer className="auth-footer">
-        <div className="auth-horse-track" aria-hidden="true">
-          <div className="auth-horse-runner">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/folly-horse.png" alt="" />
-          </div>
-        </div>
-        <p>Based in London &amp; New York</p>
-      </footer>
+      <SiteFooter className="auth-footer" />
     </main>
   );
 }

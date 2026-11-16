@@ -77,30 +77,291 @@ button {
   overflow: hidden;
 }
 
-.auth-brand {
-  padding: 48px;
+/* ---- Shared Folly website chrome: logo, menu, footer ---- */
+
+.site-header {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  padding: 24px;
 }
 
-.auth-mark {
+.site-brand {
+  display: flex;
+  align-items: flex-start;
+  gap: 48px;
+}
+
+.site-lockup-link {
   display: block;
-  font: 64px "Folly Satoshi", sans-serif;
-}
-
-.auth-brand .eyebrow {
-  display: block;
-  margin-top: 16px;
-}
-
-.brand-home-link {
-  width: fit-content;
   color: inherit;
-  text-decoration: none;
 }
 
-.brand-home-link:focus-visible {
+.site-lockup-link:focus-visible,
+.site-menu a:focus-visible,
+.site-menu button:focus-visible,
+.site-menu-button:focus-visible {
   border-radius: 2px;
   outline: 2px solid currentColor;
   outline-offset: 6px;
+}
+
+.site-lockup {
+  display: block;
+  width: 80px;
+  aspect-ratio: 246.72 / 575.81;
+  background: currentColor;
+  -webkit-mask: url("/images/folly-lockup.svg") center / contain no-repeat;
+  mask: url("/images/folly-lockup.svg") center / contain no-repeat;
+}
+
+.site-section-title {
+  padding-top: 40px;
+  white-space: nowrap;
+  font: 20px "Sneaky Times", serif;
+}
+
+.site-header-end {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.site-menu-button {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  width: 72px;
+  height: 72px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+}
+
+.site-menu-button span {
+  display: block;
+  width: 48px;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+}
+
+.site-menu {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ivory);
+  color: var(--red);
+  animation: site-menu-in 300ms ease;
+}
+
+@keyframes site-menu-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.site-menu-close {
+  position: absolute;
+  top: 32px;
+  right: 32px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-size: 48px;
+  line-height: 1;
+}
+
+.site-menu ul {
+  display: grid;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  text-align: center;
+}
+
+.site-menu a {
+  display: block;
+  padding: 8px 32px;
+  color: inherit;
+  font: clamp(30px, 4.5vw, 60px) "Satoshi Bold", sans-serif;
+  text-decoration: none;
+  opacity: 0.5;
+  transition: opacity 0.3s ease;
+}
+
+.site-menu a:hover {
+  opacity: 0.7;
+}
+
+.site-menu a.active {
+  font-family: "Folly Satoshi", sans-serif;
+  font-weight: 700;
+  opacity: 1;
+}
+
+.site-menu-actions {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  margin-top: 40px;
+}
+
+.site-menu-actions button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: 18px "Satoshi Bold", sans-serif;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.site-footer {
+  color: inherit;
+}
+
+.site-horse-track {
+  position: relative;
+  height: 128px;
+  overflow: hidden;
+}
+
+.site-horse-runner {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 128px;
+  padding: 8px;
+  animation: site-horse-cross 12s linear infinite;
+  will-change: transform;
+}
+
+.site-horse-runner img {
+  display: block;
+  width: 100%;
+  height: auto;
+  animation: site-horse-bob 250ms ease-in-out infinite alternate;
+}
+
+@keyframes site-horse-cross {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100vw); }
+}
+
+@keyframes site-horse-bob {
+  from { transform: rotate(-5deg) translateY(-3px); }
+  to { transform: rotate(5deg) translateY(3px); }
+}
+
+.site-footer-bar {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 24px;
+  border-top: 1px solid currentColor;
+}
+
+.site-footer-bar p {
+  margin: 0;
+  font: 18px "Satoshi Bold", sans-serif;
+}
+
+/* Sign-in screen: header spans the top, form sits in the middle column */
+.auth-shell {
+  grid-template-rows: auto 1fr;
+  padding-bottom: 200px;
+}
+
+.auth-shell > .site-header {
+  grid-column: 1 / -1;
+}
+
+.auth-shell > .auth-panel {
+  grid-column: 2;
+}
+
+.auth-footer {
+  position: absolute;
+  inset: auto 0 0;
+}
+
+/* Dashboard: black band like the website's hero */
+.dashboard-header {
+  background: var(--black);
+  color: var(--ivory);
+}
+
+.dashboard-header .site-header-end {
+  padding-top: 0;
+}
+
+.dashboard-footer {
+  margin-top: 64px;
+}
+
+@media (max-width: 767px) {
+  .site-header {
+    padding: 12px;
+  }
+
+  .site-brand {
+    gap: 12px;
+  }
+
+  .site-lockup {
+    width: 48px;
+  }
+
+  .site-section-title {
+    padding-top: 22px;
+    font-size: 14px;
+  }
+
+  .site-menu-button {
+    width: 48px;
+    height: 48px;
+    gap: 6px;
+  }
+
+  .site-menu-button span {
+    width: 32px;
+  }
+
+  .site-menu-close {
+    top: 40px;
+    right: 16px;
+    font-size: 30px;
+  }
+
+  .site-horse-track {
+    height: 80px;
+  }
+
+  .site-horse-runner {
+    width: 96px;
+  }
+
+  .site-footer-bar {
+    padding: 16px;
+  }
+
+  .site-footer-bar p {
+    font-size: 14px;
+    text-align: center;
+  }
+
+  .auth-shell {
+    padding-bottom: 150px;
+  }
 }
 
 .auth-panel {
@@ -126,62 +387,6 @@ button {
   margin: 22px 0;
   font-size: 18px;
   line-height: 1.35;
-}
-
-.auth-footer {
-  position: absolute;
-  inset: auto 0 0;
-  color: var(--ivory);
-}
-
-.auth-horse-track {
-  position: relative;
-  height: 98px;
-  overflow: hidden;
-  border-bottom: 1px solid currentColor;
-}
-
-.auth-horse-runner {
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: clamp(76px, 7vw, 100px);
-  animation: auth-horse-cross 14s linear infinite;
-  will-change: transform;
-}
-
-.auth-horse-runner img {
-  display: block;
-  width: 100%;
-  height: auto;
-  animation: auth-horse-bob 650ms ease-in-out infinite alternate;
-  transform-origin: 50% 50%;
-}
-
-.auth-footer p {
-  margin: 0;
-  padding: 20px 48px 22px;
-  font-size: 17px;
-}
-
-@keyframes auth-horse-cross {
-  from {
-    transform: translateX(-140px);
-  }
-
-  to {
-    transform: translateX(calc(100vw + 20px));
-  }
-}
-
-@keyframes auth-horse-bob {
-  from {
-    transform: rotate(-3deg);
-  }
-
-  to {
-    transform: rotate(3deg);
-  }
 }
 
 .segmented,
@@ -382,41 +587,6 @@ button {
   padding-bottom: 90px;
 }
 
-.dashboard-header {
-  position: sticky;
-  z-index: 10;
-  top: 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  min-height: 82px;
-  padding: 16px 3vw;
-  background: var(--black);
-  color: var(--ivory);
-}
-
-.brand-lockup {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.brand-word {
-  font-family: "Folly Satoshi", sans-serif;
-  font-size: 36px;
-  line-height: 1;
-}
-
-.brand-rule {
-  width: 1px;
-  height: 36px;
-  background: var(--ivory);
-}
-
-.brand-product {
-  font: 24px "Sneaky Times", serif;
-}
-
 .header-actions {
   display: flex;
   align-items: center;
@@ -430,7 +600,7 @@ button {
   min-width: 180px;
 }
 
-.refresh-button span {
+.refresh-button span:first-child {
   display: inline-block;
   margin-right: 8px;
   font-size: 20px;
@@ -958,16 +1128,12 @@ button {
     grid-template-columns: 1fr;
   }
 
-  .auth-brand {
-    padding: 24px;
+  .auth-shell > .auth-panel {
+    grid-column: 1;
   }
 
   .auth-panel {
     padding: 20px 24px 70px;
-  }
-
-  .auth-footer p {
-    padding-inline: 24px;
   }
 
   .intro-row {
@@ -992,13 +1158,17 @@ button {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .auth-horse-runner {
+  .site-horse-runner {
     left: 50%;
     animation: none;
     transform: translateX(-50%);
   }
 
-  .auth-horse-runner img {
+  .site-horse-runner img {
+    animation: none;
+  }
+
+  .site-menu {
     animation: none;
   }
 }
@@ -1009,15 +1179,25 @@ button {
     white-space: normal;
   }
 
-  .dashboard-header {
-    position: relative;
-    align-items: flex-start;
-  }
-
-  .brand-product,
-  .brand-rule,
   .header-actions .text-button {
     display: none;
+  }
+
+  .header-actions {
+    gap: 8px;
+  }
+
+  .refresh-button {
+    min-width: 0;
+    padding-inline: 14px;
+  }
+
+  .refresh-button .refresh-label {
+    display: none;
+  }
+
+  .refresh-button span:first-child {
+    margin-right: 0;
   }
 
   .intro-row {

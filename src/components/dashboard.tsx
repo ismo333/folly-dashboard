@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
-import { FOLLY_PRODUCTIONS_URL } from "@/lib/links";
+import { SiteFooter, SiteHeader } from "@/components/site-chrome";
 import type { Profile, RefreshSummary, Review, Show } from "@/lib/types";
 
 const tierLabels: Record<string, string> = {
@@ -181,6 +181,11 @@ export function Dashboard({
     setShows((current) => current.map((item) => item.id === show.id ? show : item));
   }
 
+  async function signOut() {
+    await fetch("/api/auth/sign-out", { method: "POST" });
+    window.location.assign("/");
+  }
+
   async function toggleFavourite(show: Show) {
     if (setupMode) return;
     const next = !show.isFavourite;
@@ -192,38 +197,36 @@ export function Dashboard({
 
   return (
     <main className="dashboard">
-      <header className="dashboard-header">
-        <div className="brand-lockup">
-          <a
-            className="brand-word brand-home-link"
-            href={FOLLY_PRODUCTIONS_URL}
-            aria-label="Folly Productions website"
-          >
-            folly
-          </a>
-          <span className="brand-rule" />
-          <span className="brand-product">What’s On</span>
-        </div>
-        <div className="header-actions">
-          {viewer?.role === "owner" && (
-            <button className="text-button light" onClick={() => setInviteOpen(true)}>
-              Invite reviewers
+      <SiteHeader
+        className="dashboard-header"
+        actions={
+          <div className="header-actions">
+            {viewer?.role === "owner" && (
+              <button className="text-button light" onClick={() => setInviteOpen(true)}>
+                Invite reviewers
+              </button>
+            )}
+            {!setupMode && (
+              <button className="text-button light" onClick={signOut}>
+                {viewer?.displayName} · Sign out
+              </button>
+            )}
+            <button
+              className="refresh-button"
+              onClick={refresh}
+              disabled={refreshing || setupMode}
+              aria-label={refreshing ? "Checking listings" : "Refresh listings"}
+            >
+              <span className={refreshing ? "spin" : ""}>↻</span>
+              <span className="refresh-label">{refreshing ? "Checking listings…" : "Refresh listings"}</span>
             </button>
-          )}
-          {!setupMode && (
-            <button className="text-button light" onClick={async () => {
-              await fetch("/api/auth/sign-out", { method: "POST" });
-              window.location.assign("/");
-            }}>
-              {viewer?.displayName} · Sign out
-            </button>
-          )}
-          <button className="refresh-button" onClick={refresh} disabled={refreshing || setupMode}>
-            <span className={refreshing ? "spin" : ""}>↻</span>
-            {refreshing ? "Checking listings…" : "Refresh listings"}
-          </button>
-        </div>
-      </header>
+          </div>
+        }
+        menuActions={[
+          ...(viewer?.role === "owner" ? [{ label: "Invite reviewers", onSelect: () => setInviteOpen(true) }] : []),
+          ...(!setupMode ? [{ label: "Sign out", onSelect: signOut }] : [])
+        ]}
+      />
 
       {setupMode && (
         <div className="setup-banner">
@@ -351,6 +354,8 @@ export function Dashboard({
           </button>
         </div>
       )}
+
+      <SiteFooter className="dashboard-footer" />
 
       {selected && (
         <ShowDrawer
