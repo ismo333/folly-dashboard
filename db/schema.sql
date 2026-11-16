@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS profiles (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   email text UNIQUE NOT NULL,
   display_name text NOT NULL,
-  password_hash text NOT NULL,
+  password_hash text,
   role text NOT NULL CHECK (role IN ('owner', 'reviewer')),
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
@@ -21,18 +21,25 @@ CREATE TABLE IF NOT EXISTS sessions (
 CREATE INDEX IF NOT EXISTS sessions_token_idx ON sessions (token_hash);
 CREATE INDEX IF NOT EXISTS sessions_expiry_idx ON sessions (expires_at);
 
-CREATE TABLE IF NOT EXISTS password_reset_tokens (
+-- Sign-in is by emailed magic link, so passwords are no longer used.
+ALTER TABLE profiles ALTER COLUMN password_hash DROP NOT NULL;
+
+DROP TABLE IF EXISTS password_reset_tokens;
+
+CREATE TABLE IF NOT EXISTS login_tokens (
   token_hash text PRIMARY KEY,
-  profile_id uuid NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  email text NOT NULL,
+  display_name text,
+  remember_me boolean NOT NULL DEFAULT true,
   expires_at timestamptz NOT NULL,
   used_at timestamptz,
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE INDEX IF NOT EXISTS password_reset_tokens_profile_idx
-  ON password_reset_tokens (profile_id, created_at DESC);
-CREATE INDEX IF NOT EXISTS password_reset_tokens_expiry_idx
-  ON password_reset_tokens (expires_at);
+CREATE INDEX IF NOT EXISTS login_tokens_email_idx
+  ON login_tokens (email, created_at DESC);
+CREATE INDEX IF NOT EXISTS login_tokens_expiry_idx
+  ON login_tokens (expires_at);
 
 CREATE TABLE IF NOT EXISTS invite_settings (
   id boolean PRIMARY KEY DEFAULT true CHECK (id),

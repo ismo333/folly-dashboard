@@ -9,7 +9,7 @@ A private, shared theatre listings and review notebook for Folly Productions.
 - Personal favourites and closing-soon ordering
 - A past-show filter with archived productions still open for visits and reviews
 - On-demand refresh against the nine existing listing sources
-- Individual reviewer accounts activated with an owner-controlled invite code
+- Passwordless sign-in: people enter their email and click the link we send them
 - Multiple dated visits and reviews per person and show
 - Comments on public reviews
 - Owner-only reviews visible only to Isobel and Zsuzsa
@@ -39,21 +39,19 @@ Open `http://localhost:3000`.
 3. Add the remaining values from `.env.example` to `.env.local`.
 4. Put Isobel and Zsuzsa’s email addresses in `OWNER_EMAILS`. Their profiles are
    promoted to owners automatically after they sign up.
-5. Sign in as an owner and use **Invite reviewers** to generate the first shared
-   invite code.
+5. Verify a sending domain with Resend, then set `RESEND_API_KEY`, `EMAIL_FROM`,
+   and the deployed `APP_URL`. **Sign-in depends on this** — without it nobody
+   can get a sign-in link on the live site.
 
-To enable **Forgot password?**, verify a sending domain with Resend, then set
-`RESEND_API_KEY`, `PASSWORD_RESET_FROM_EMAIL`, and the deployed `APP_URL`.
-Reset links expire after 30 minutes and are invalidated after one use.
+Sign-in links expire after 15 minutes and work once. Anyone can create an
+account with “New here” (the invite code is switched off for now). Locally,
+without Resend, the sign-in link is shown on screen and printed in the terminal.
 
 After pulling a version with schema changes, apply them without reseeding shows:
 
 ```bash
 npm run db:migrate
 ```
-
-The invite code is hashed before it is stored. Changing it invalidates the old
-code without removing any existing reviewer accounts.
 
 ## Refresh behavior
 

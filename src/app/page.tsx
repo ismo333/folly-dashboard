@@ -12,11 +12,11 @@ export default async function Home({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const query = await searchParams;
-  const resetToken = typeof query.reset === "string" ? query.reset : "";
+  const loginToken = typeof query.login === "string" ? query.login : "";
   const profile = await currentProfile();
 
-  if (resetToken) {
-    return <AuthScreen initialResetToken={resetToken} />;
+  if (loginToken) {
+    return <AuthScreen initialLoginToken={loginToken} />;
   }
 
   if (isAuthConfigured && !profile) {

@@ -112,7 +112,6 @@ export function Dashboard({
   const [selected, setSelected] = useState<Show | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [refreshResult, setRefreshResult] = useState<RefreshSummary | null>(null);
-  const [inviteOpen, setInviteOpen] = useState(false);
 
   const cityTiers = city === "nyc"
     ? ["broadway", "off-broadway", "off-off-broadway"]
@@ -201,11 +200,6 @@ export function Dashboard({
         className="dashboard-header"
         actions={
           <div className="header-actions">
-            {viewer?.role === "owner" && (
-              <button className="text-button light" onClick={() => setInviteOpen(true)}>
-                Invite reviewers
-              </button>
-            )}
             {!setupMode && (
               <button className="text-button light" onClick={signOut}>
                 {viewer?.displayName} · Sign out
@@ -223,7 +217,6 @@ export function Dashboard({
           </div>
         }
         menuActions={[
-          ...(viewer?.role === "owner" ? [{ label: "Invite reviewers", onSelect: () => setInviteOpen(true) }] : []),
           ...(!setupMode ? [{ label: "Sign out", onSelect: signOut }] : [])
         ]}
       />
@@ -367,7 +360,6 @@ export function Dashboard({
           onToggleFavourite={() => toggleFavourite(selected)}
         />
       )}
-      {inviteOpen && <InviteDialog onClose={() => setInviteOpen(false)} />}
     </main>
   );
 }
@@ -757,57 +749,13 @@ function ReviewForm({
         <label>
           Who can see this?
           <select name="visibility" defaultValue={review?.visibility ?? "public"}>
-            <option value="public">Everyone invited to Folly</option>
+            <option value="public">Everyone on Folly</option>
             {viewer?.role === "owner" && <option value="owners">Only Isobel &amp; Zsuzsa</option>}
           </select>
         </label>
         {error && <p className="form-error">{error}</p>}
         <button className="primary-button" disabled={busy}>{busy ? "Saving…" : "Save review"}</button>
       </form>
-    </div>
-  );
-}
-
-function InviteDialog({ onClose }: { onClose: () => void }) {
-  const [code, setCode] = useState("");
-  const [error, setError] = useState("");
-  async function generate(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setError("");
-    const form = new FormData(event.currentTarget);
-    try {
-      const result = await jsonRequest("/api/invite", {
-        method: "PUT",
-        body: JSON.stringify({ code: String(form.get("code") ?? "") || undefined })
-      });
-      setCode(result.code);
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Could not update the invite.");
-    }
-  }
-  return (
-    <div className="drawer-backdrop">
-      <div className="invite-dialog">
-        <button className="drawer-close" onClick={onClose}>×</button>
-        <p className="eyebrow">Owner controls</p>
-        <h2>Invite reviewers</h2>
-        <p>Changing the code invalidates the previous one. Existing accounts keep their access.</p>
-        <form onSubmit={generate}>
-          <label>
-            Choose a code, or leave blank to generate one
-            <input name="code" minLength={8} autoComplete="off" />
-          </label>
-          <button className="primary-button">Set new invite code</button>
-        </form>
-        {code && (
-          <div className="invite-code">
-            <span>Share this code privately</span>
-            <b>{code}</b>
-            <small>It will not be shown again.</small>
-          </div>
-        )}
-        {error && <p className="form-error">{error}</p>}
-      </div>
     </div>
   );
 }

@@ -14,12 +14,10 @@ export function ownerEmails() {
 export const invitePepper =
   process.env.INVITE_CODE_PEPPER ?? "local-development-only-invite-pepper";
 
-export const passwordResetEmail = {
+export const emailSettings = {
   apiKey: process.env.RESEND_API_KEY ?? "",
-  from: process.env.PASSWORD_RESET_FROM_EMAIL ?? "",
+  from: process.env.EMAIL_FROM ?? process.env.PASSWORD_RESET_FROM_EMAIL ?? "",
   appUrl: process.env.APP_URL?.replace(/\/$/, "") ?? ""
 };
 
-export const isPasswordResetEmailConfigured = Boolean(
-  passwordResetEmail.apiKey && passwordResetEmail.from
-);
+export const isEmailConfigured = Boolean(emailSettings.apiKey && emailSettings.from);

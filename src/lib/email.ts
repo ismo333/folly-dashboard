@@ -1,4 +1,4 @@
-import { passwordResetEmail } from "@/lib/config";
+import { emailSettings } from "@/lib/config";
 
 function escapeHtml(value: string) {
   return value.replace(/[&<>"']/g, (character) => ({
@@ -10,36 +10,36 @@ function escapeHtml(value: string) {
   })[character] || character);
 }
 
-export async function sendPasswordResetEmail({
+export async function sendSignInEmail({
   to,
   displayName,
-  resetUrl,
+  signInUrl,
   idempotencyKey
 }: {
   to: string;
   displayName: string;
-  resetUrl: string;
+  signInUrl: string;
   idempotencyKey: string;
 }) {
   const safeName = escapeHtml(displayName);
-  const safeUrl = escapeHtml(resetUrl);
+  const safeUrl = escapeHtml(signInUrl);
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
-      authorization: `Bearer ${passwordResetEmail.apiKey}`,
+      authorization: `Bearer ${emailSettings.apiKey}`,
       "content-type": "application/json",
       "idempotency-key": idempotencyKey,
-      "user-agent": "Folly Productions password reset/1.0"
+      "user-agent": "Folly Productions sign-in/1.0"
     },
     body: JSON.stringify({
-      from: passwordResetEmail.from,
+      from: emailSettings.from,
       to: [to],
-      subject: "Reset your Folly password",
-      text: `Hello ${displayName},\n\nReset your Folly password using this link:\n${resetUrl}\n\nThis link expires in 30 minutes and can only be used once. If you did not request it, you can ignore this email.`,
-      html: `<p>Hello ${safeName},</p><p><a href="${safeUrl}">Reset your Folly password</a>.</p><p>This link expires in 30 minutes and can only be used once. If you did not request it, you can ignore this email.</p>`
+      subject: "Your Folly sign-in link",
+      text: `Hello ${displayName},\n\nSign in to Folly — What’s On using this link:\n${signInUrl}\n\nThis link expires in 15 minutes and can only be used once. If you did not request it, you can ignore this email.`,
+      html: `<p>Hello ${safeName},</p><p><a href="${safeUrl}">Sign in to Folly — What’s On</a>.</p><p>This link expires in 15 minutes and can only be used once. If you did not request it, you can ignore this email.</p>`
     })
   });
   if (!response.ok) {
-    throw new Error(`Password reset email failed with status ${response.status}.`);
+    throw new Error(`Sign-in email failed with status ${response.status}.`);
   }
 }

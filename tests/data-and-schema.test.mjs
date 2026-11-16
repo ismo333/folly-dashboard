@@ -41,9 +41,9 @@ test("comment inputs keep readable text inside private reviews", () => {
   );
 });
 
-test("password reset tokens are expiring and single-use", () => {
-  assert.match(schema, /CREATE TABLE IF NOT EXISTS password_reset_tokens/);
+test("magic sign-in links are expiring and single-use", () => {
+  assert.match(schema, /CREATE TABLE IF NOT EXISTS login_tokens/);
   assert.match(schema, /expires_at timestamptz NOT NULL/);
   assert.match(schema, /used_at timestamptz/);
-  assert.match(schema, /profile_id uuid NOT NULL REFERENCES profiles\(id\) ON DELETE CASCADE/);
+  assert.match(schema, /ALTER TABLE profiles ALTER COLUMN password_hash DROP NOT NULL/);
 });
