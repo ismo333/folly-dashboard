@@ -21,6 +21,19 @@ CREATE TABLE IF NOT EXISTS sessions (
 CREATE INDEX IF NOT EXISTS sessions_token_idx ON sessions (token_hash);
 CREATE INDEX IF NOT EXISTS sessions_expiry_idx ON sessions (expires_at);
 
+CREATE TABLE IF NOT EXISTS password_reset_tokens (
+  token_hash text PRIMARY KEY,
+  profile_id uuid NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  expires_at timestamptz NOT NULL,
+  used_at timestamptz,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS password_reset_tokens_profile_idx
+  ON password_reset_tokens (profile_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS password_reset_tokens_expiry_idx
+  ON password_reset_tokens (expires_at);
+
 CREATE TABLE IF NOT EXISTS invite_settings (
   id boolean PRIMARY KEY DEFAULT true CHECK (id),
   code_hash text NOT NULL,

@@ -255,6 +255,36 @@ button {
   cursor: pointer;
 }
 
+.sign-in-options {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 20px;
+}
+
+.sign-in-options .text-button {
+  color: inherit;
+}
+
+.auth-form-intro {
+  margin: 0;
+  line-height: 1.4;
+}
+
+.form-success {
+  margin: 0;
+  padding: 12px;
+  background: var(--ivory);
+  color: var(--red);
+  line-height: 1.4;
+}
+
+.auth-back {
+  width: fit-content;
+  color: inherit;
+}
+
 .auth-form .remember-me input {
   width: 18px;
   height: 18px;

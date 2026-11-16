@@ -8,6 +8,7 @@ import type { Profile } from "@/lib/types";
 const scrypt = promisify(scryptCallback);
 const sessionCookie = "folly_session";
 const sessionDays = 30;
+const sessionMaxAge = sessionDays * 86_400;
 
 export async function hashPassword(password: string) {
   const salt = randomBytes(16).toString("hex");
@@ -23,8 +24,19 @@ export async function verifyPassword(password: string, stored: string) {
   return expected.length === actual.length && timingSafeEqual(expected, actual);
 }
 
-function hashToken(token: string) {
+export function hashOpaqueToken(token: string) {
   return createHash("sha256").update(token).digest("hex");
+}
+
+export function sessionCookieOptions(rememberMe: boolean) {
+  const expires = new Date(Date.now() + sessionMaxAge * 1000);
+  return {
+    httpOnly: true,
+    sameSite: "lax" as const,
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    ...(rememberMe ? { expires, maxAge: sessionMaxAge } : {})
+  };
 }
 
 export async function createSession(profileId: string, rememberMe = true) {
@@ -34,16 +46,10 @@ export async function createSession(profileId: string, rememberMe = true) {
   await sql.query(
     `INSERT INTO sessions (profile_id, token_hash, expires_at)
      VALUES ($1, $2, $3)`,
-    [profileId, hashToken(token), expires.toISOString()]
+    [profileId, hashOpaqueToken(token), expires.toISOString()]
   );
   const jar = await cookies();
-  jar.set(sessionCookie, token, {
-    httpOnly: true,
-    sameSite: "strict",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    ...(rememberMe ? { expires } : {})
-  });
+  jar.set(sessionCookie, token, sessionCookieOptions(rememberMe));
 }
 
 export async function destroySession() {
@@ -51,11 +57,11 @@ export async function destroySession() {
   const token = jar.get(sessionCookie)?.value;
   if (token && isDatabaseConfigured) {
     const sql = db();
-    await sql.query("DELETE FROM sessions WHERE token_hash = $1", [hashToken(token)]);
+    await sql.query("DELETE FROM sessions WHERE token_hash = $1", [hashOpaqueToken(token)]);
   }
   jar.set(sessionCookie, "", {
     httpOnly: true,
-    sameSite: "strict",
+    sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
     expires: new Date(0)
@@ -74,7 +80,7 @@ export async function currentProfile(): Promise<Profile | null> {
       WHERE s.token_hash = $1
         AND s.expires_at > now()
       LIMIT 1`,
-    [hashToken(token)]
+    [hashOpaqueToken(token)]
   );
   if (rows.length === 0) return null;
   const row = rows[0];

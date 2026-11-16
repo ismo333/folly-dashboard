@@ -38,8 +38,8 @@ function isClosingSoon(show: Show) {
   return days >= 0 && days <= 30;
 }
 
-function sortShows(a: Show, b: Show, pastOnly: boolean) {
-  if (pastOnly) {
+function sortShows(a: Show, b: Show) {
+  if (a.archived && b.archived) {
     return (b.closing || "").localeCompare(a.closing || "") || a.title.localeCompare(b.title);
   }
   if (a.archived !== b.archived) return a.archived ? 1 : -1;
@@ -105,9 +105,10 @@ export function Dashboard({
   );
   const [query, setQuery] = useState("");
   const [newOnly, setNewOnly] = useState(false);
+  const [includePast, setIncludePast] = useState(false);
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
-  const [view, setView] = useState<"listings" | "favourites" | "seen" | "past" | "private">("listings");
+  const [view, setView] = useState<"listings" | "favourites" | "seen" | "private">("listings");
   const [selected, setSelected] = useState<Show | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [refreshResult, setRefreshResult] = useState<RefreshSummary | null>(null);
@@ -121,8 +122,7 @@ export function Dashboard({
     const normalized = query.trim().toLowerCase();
     return shows.filter((show) => {
       if (show.city !== city || !tiers.has(show.tier)) return false;
-      if (view === "listings" && show.archived) return false;
-      if (view === "past" && !show.archived) return false;
+      if (view === "listings" && show.archived && !includePast) return false;
       if (view === "favourites" && !show.isFavourite) return false;
       if (newOnly && show.newWriting !== true) return false;
       if (!overlaps(show, from, to)) return false;
@@ -146,8 +146,8 @@ export function Dashboard({
         .join(" ")
         .toLowerCase()
         .includes(normalized);
-    }).sort((a, b) => sortShows(a, b, view === "past"));
-  }, [shows, city, tiers, query, newOnly, from, to, view, viewer?.id]);
+    }).sort(sortShows);
+  }, [shows, city, tiers, query, newOnly, includePast, from, to, view, viewer?.id]);
 
   function changeCity(next: "nyc" | "london") {
     setCity(next);
@@ -261,9 +261,6 @@ export function Dashboard({
         <button className={view === "seen" ? "active" : ""} onClick={() => setView("seen")}>
           My seen shows
         </button>
-        <button className={view === "past" ? "active" : ""} onClick={() => setView("past")}>
-          Past shows
-        </button>
         {viewer?.role === "owner" && (
           <button className={view === "private" ? "active" : ""} onClick={() => setView("private")}>
             Private · Isobel &amp; Zsuzsa
@@ -294,6 +291,16 @@ export function Dashboard({
             <input type="checkbox" checked={newOnly} onChange={(event) => setNewOnly(event.target.checked)} />
             New writing
           </label>
+          {view === "listings" && (
+            <label className="check-filter">
+              <input
+                type="checkbox"
+                checked={includePast}
+                onChange={(event) => setIncludePast(event.target.checked)}
+              />
+              Include past shows
+            </label>
+          )}
         </div>
         <div className="range-row">
           <label>
@@ -338,7 +345,7 @@ export function Dashboard({
 
       {filtered.length === 0 && (
         <div className="empty-state">
-          <span>{view === "past" ? "No past shows in this combination—yet." : "Nothing in this combination—yet."}</span>
+          <span>Nothing in this combination—yet.</span>
           <button onClick={() => { setFrom(""); setTo(""); setQuery(""); setNewOnly(false); }}>
             Clear filters
           </button>

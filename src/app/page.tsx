@@ -6,8 +6,18 @@ import { Dashboard } from "@/components/dashboard";
 
 export const dynamic = "force-dynamic";
 
-export default async function Home() {
+export default async function Home({
+  searchParams
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const query = await searchParams;
+  const resetToken = typeof query.reset === "string" ? query.reset : "";
   const profile = await currentProfile();
+
+  if (resetToken) {
+    return <AuthScreen initialResetToken={resetToken} />;
+  }
 
   if (isAuthConfigured && !profile) {
     return <AuthScreen />;
