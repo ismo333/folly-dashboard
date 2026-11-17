@@ -614,6 +614,16 @@ button {
   to { transform: rotate(360deg); }
 }
 
+.guest-banner {
+  padding: 12px 3vw;
+  background: var(--paper);
+  border-bottom: 1px solid var(--black);
+}
+
+.guest-banner .text-button {
+  color: inherit;
+}
+
 .setup-banner,
 .refresh-result {
   padding: 12px 3vw;

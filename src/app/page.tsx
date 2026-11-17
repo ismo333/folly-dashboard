@@ -19,7 +19,8 @@ export default async function Home({
     return <AuthScreen initialLoginToken={loginToken} />;
   }
 
-  if (isAuthConfigured && !profile) {
+  // Listings are open to everyone; signing in is only needed to save things.
+  if (isAuthConfigured && !profile && query.signin !== undefined) {
     return <AuthScreen />;
   }
 

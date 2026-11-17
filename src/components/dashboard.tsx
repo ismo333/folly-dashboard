@@ -180,6 +180,12 @@ export function Dashboard({
     setShows((current) => current.map((item) => item.id === show.id ? show : item));
   }
 
+  const guest = !viewer && !setupMode;
+
+  function goToSignIn() {
+    window.location.assign("/?signin=1");
+  }
+
   async function signOut() {
     await fetch("/api/auth/sign-out", { method: "POST" });
     window.location.assign("/");
@@ -187,6 +193,7 @@ export function Dashboard({
 
   async function toggleFavourite(show: Show) {
     if (setupMode) return;
+    if (!viewer) return goToSignIn();
     const next = !show.isFavourite;
     await jsonRequest(`/api/favourites/${show.id}`, { method: next ? "PUT" : "DELETE" });
     const updated = { ...show, isFavourite: next };
@@ -200,24 +207,31 @@ export function Dashboard({
         className="dashboard-header"
         actions={
           <div className="header-actions">
-            {!setupMode && (
+            {viewer && (
               <button className="text-button light" onClick={signOut}>
-                {viewer?.displayName} · Sign out
+                {viewer.displayName} · Sign out
               </button>
             )}
-            <button
-              className="refresh-button"
-              onClick={refresh}
-              disabled={refreshing || setupMode}
-              aria-label={refreshing ? "Checking listings" : "Refresh listings"}
-            >
-              <span className={refreshing ? "spin" : ""}>↻</span>
-              <span className="refresh-label">{refreshing ? "Checking listings…" : "Refresh listings"}</span>
-            </button>
+            {guest ? (
+              <button className="refresh-button" onClick={goToSignIn}>
+                Sign in
+              </button>
+            ) : (
+              <button
+                className="refresh-button"
+                onClick={refresh}
+                disabled={refreshing || setupMode}
+                aria-label={refreshing ? "Checking listings" : "Refresh listings"}
+              >
+                <span className={refreshing ? "spin" : ""}>↻</span>
+                <span className="refresh-label">{refreshing ? "Checking listings…" : "Refresh listings"}</span>
+              </button>
+            )}
           </div>
         }
         menuActions={[
-          ...(!setupMode ? [{ label: "Sign out", onSelect: signOut }] : [])
+          ...(viewer ? [{ label: "Sign out", onSelect: signOut }] : []),
+          ...(guest ? [{ label: "Sign in", onSelect: goToSignIn }] : [])
         ]}
       />
 
@@ -225,6 +239,13 @@ export function Dashboard({
         <div className="setup-banner">
           <strong>Preview mode.</strong> Add Neon environment variables and run the seed command
           to enable accounts, reviews, comments, and live refresh.
+        </div>
+      )}
+      {guest && (
+        <div className="guest-banner">
+          You’re browsing as a guest.{" "}
+          <button className="text-button" onClick={goToSignIn}>Sign in or join</button>
+          {" "}to save favourites, read reviews and add your own.
         </div>
       )}
       {refreshResult && (
@@ -254,9 +275,11 @@ export function Dashboard({
             My favourites
           </button>
         )}
-        <button className={view === "seen" ? "active" : ""} onClick={() => setView("seen")}>
-          My seen shows
-        </button>
+        {viewer && (
+          <button className={view === "seen" ? "active" : ""} onClick={() => setView("seen")}>
+            My seen shows
+          </button>
+        )}
         {viewer?.role === "owner" && (
           <button className={view === "private" ? "active" : ""} onClick={() => setView("private")}>
             Private · Isobel &amp; Zsuzsa
@@ -414,7 +437,11 @@ function ShowCard({
       <div className="card-footer">
         <span>{show.newWriting ? "New writing" : show.writer ? `By ${show.writer}` : "Production"}</span>
         <span>
-          {myVisits.length > 0 ? `Seen ${myVisits.length}×` : `${show.reviews.length} review${show.reviews.length === 1 ? "" : "s"}`} →
+          {!viewer && !setupMode
+            ? "Details"
+            : myVisits.length > 0
+              ? `Seen ${myVisits.length}×`
+              : `${show.reviews.length} review${show.reviews.length === 1 ? "" : "s"}`} →
         </span>
       </div>
     </article>
@@ -493,6 +520,17 @@ function ShowDrawer({
           {show.sourceUrl && <a href={show.sourceUrl} target="_blank" rel="noreferrer">Source ↗</a>}
         </div>
 
+        {!viewer && !setupMode ? (
+          <section className="review-section">
+            <div className="section-title">
+              <h3>Visits &amp; reviews</h3>
+            </div>
+            <p className="muted">Sign in to read Folly’s reviews and add your own visit.</p>
+            <button className="small-button" onClick={() => window.location.assign("/?signin=1")}>
+              Sign in or join
+            </button>
+          </section>
+        ) : (
         <section className="review-section">
           <div className="section-title">
             <h3>Visits &amp; reviews</h3>
@@ -515,6 +553,7 @@ function ShowDrawer({
             />
           ))}
         </section>
+        )}
         {(adding || editing) && (
           <ReviewForm
             show={show}

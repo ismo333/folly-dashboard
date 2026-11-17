@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import Link from "next/link";
 import { SiteFooter, SiteHeader } from "@/components/site-chrome";
 
 type AuthMode = "sign-in" | "join" | "sent" | "confirm";
@@ -120,6 +121,9 @@ export function AuthScreen({ initialLoginToken = "" }: { initialLoginToken?: str
               <p className="auth-form-intro">
                 No password needed — we’ll email you a link that signs you straight in.
               </p>
+              <Link className="text-button auth-back" href="/">
+                ← Just browsing? Back to the listings
+              </Link>
             </form>
           </>
         )}
