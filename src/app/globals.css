@@ -83,15 +83,16 @@ button {
   position: relative;
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   gap: 24px;
-  padding: 24px;
+  padding: 20px 3vw;
 }
 
+/* "/ What's On" sits on the same line as the bottom of the logo */
 .site-brand {
   display: flex;
-  align-items: flex-start;
-  gap: 48px;
+  align-items: flex-end;
+  gap: 24px;
 }
 
 .site-lockup-link {
@@ -110,7 +111,7 @@ button {
 
 .site-lockup {
   display: block;
-  width: 80px;
+  width: 44px;
   aspect-ratio: 246.72 / 575.81;
   background: currentColor;
   -webkit-mask: url("/images/folly-lockup.svg") center / contain no-repeat;
@@ -118,9 +119,8 @@ button {
 }
 
 .site-section-title {
-  padding-top: 40px;
   white-space: nowrap;
-  font: 20px "Sneaky Times", serif;
+  font: 20px/0.8 "Sneaky Times", serif;
 }
 
 .site-header-end {
@@ -323,12 +323,11 @@ button {
   }
 
   .site-lockup {
-    width: 48px;
+    width: 32px;
   }
 
   .site-section-title {
-    padding-top: 22px;
-    font-size: 14px;
+    font-size: 16px;
   }
 
   .site-menu-button {
@@ -620,13 +619,16 @@ button {
 }
 
 .guest-banner {
-  padding: 12px 3vw;
-  background: var(--paper);
-  border-bottom: 1px solid var(--black);
+  padding: 8px 3vw;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 14px;
 }
 
 .guest-banner .text-button {
-  color: inherit;
+  padding: 0;
+  color: var(--black);
+  font-size: inherit;
 }
 
 .setup-banner,

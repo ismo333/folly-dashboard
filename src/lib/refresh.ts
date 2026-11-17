@@ -20,7 +20,7 @@ type Candidate = {
   detailUrl?: string | null;
 };
 
-const sources = [
+export const sources = [
   {
     url: "https://playbill.com/article/whats-currently-playing-on-broadway",
     city: "nyc" as const,
@@ -32,7 +32,7 @@ const sources = [
     url: "https://playbill.com/article/schedule-of-upcoming-and-announced-broadway-shows",
     city: "nyc" as const,
     tier: "broadway",
-    kind: "playbill-article",
+    kind: "playbill-schedule",
     status: "Upcoming"
   },
   {
@@ -46,14 +46,14 @@ const sources = [
     url: "https://playbill.com/article/schedule-of-upcoming-off-broadway-shows-2",
     city: "nyc" as const,
     tier: "off-broadway",
-    kind: "playbill-article",
+    kind: "playbill-schedule",
     status: "Upcoming"
   },
   {
-    url: "https://sohorep.org/",
+    url: "https://sohorep.org/next/",
     city: "nyc" as const,
     tier: "off-off-broadway",
-    kind: "generic",
+    kind: "soho-rep",
     status: "Upcoming",
     venue: "Soho Rep"
   },
@@ -61,7 +61,7 @@ const sources = [
     url: "https://thetanknyc.org/calendar-1",
     city: "nyc" as const,
     tier: "off-off-broadway",
-    kind: "generic",
+    kind: "squarespace-events",
     status: "Upcoming",
     venue: "The Tank"
   },
@@ -145,6 +145,150 @@ function playbillArticle(html: string, source: (typeof sources)[number]): Candid
       opening: parseDate(opened),
       closing: parseDate(closes),
       ticketUrl: absoluteUrl(ticketLink.attr("href"), source.url),
+      sourceUrl: source.url
+    });
+  });
+  return candidates;
+}
+
+const smallWords = new Set(["a", "an", "and", "as", "at", "but", "by", "for", "in", "of", "on", "or", "the", "to", "with"]);
+const romanNumeral = /^(?=[IVXLC]+$)C{0,3}(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$/;
+
+// Playbill now prints upcoming titles in capitals ("THE FANTASTICKS").
+export function tidyTitle(title: string) {
+  if (!/[A-Z]/.test(title) || title !== title.toUpperCase()) return title;
+  const words = title.toLowerCase().split(" ");
+  return words
+    .map((word, index) => {
+      const letters = word.replace(/[^a-z]/g, "");
+      // Keep numerals like "Henry VI" in capitals.
+      if (letters && /^[ivxlc]+[^a-z]*$/.test(word) && romanNumeral.test(letters.toUpperCase())) {
+        return word.toUpperCase();
+      }
+      // Small words stay lower case, except first or after a colon or dash.
+      const previous = words[index - 1] ?? "";
+      const startsPhrase = index === 0 || /[:–—-]$/.test(previous);
+      if (!startsPhrase && smallWords.has(word)) return word;
+      return word.replace(/\p{L}/u, (letter) => letter.toUpperCase());
+    })
+    .join(" ");
+}
+
+// Turns "February 20 - March 21" (no year) into ISO dates, choosing the
+// soonest run that has not already finished.
+export function seasonRange(text: string, today = new Date()) {
+  const match = text.match(/([A-Z][a-z]+)\s+(\d{1,2})(?:,?\s*(\d{4}))?\s*[-–—]\s*(?:([A-Z][a-z]+)\s+)?(\d{1,2})(?:,?\s*(\d{4}))?/);
+  if (!match) return { opening: null, closing: null };
+  const [, startMonth, startDay, startYear, endMonthRaw, endDay, endYear] = match;
+  const endMonth = endMonthRaw || startMonth;
+  const todayIso = today.toISOString().slice(0, 10);
+  for (const year of [today.getUTCFullYear() - 1, today.getUTCFullYear(), today.getUTCFullYear() + 1]) {
+    const opening = parseDate(`${startMonth} ${startDay}, ${startYear || year}`);
+    let closing = parseDate(`${endMonth} ${endDay}, ${endYear || startYear || year}`);
+    if (opening && closing && closing < opening && !endYear) {
+      closing = parseDate(`${endMonth} ${endDay}, ${Number(startYear || year) + 1}`);
+    }
+    if (opening && closing && (closing >= todayIso || startYear)) return { opening, closing };
+  }
+  return { opening: null, closing: null };
+}
+
+function playbillSchedule(html: string, source: (typeof sources)[number]): Candidate[] {
+  const $ = cheerio.load(html);
+  const candidates: Candidate[] = [];
+  $("p").each((_, element) => {
+    const block = $(element);
+    const rawTitle = block.find("strong").first().text().replace(/\s+/g, " ").trim();
+    if (!rawTitle || rawTitle.length > 140) return;
+    const lines = (block.html() || "")
+      .split(/<br\s*\/?>/i)
+      .map((line) => cheerio.load(`<div>${line}</div>`)("div").text().replace(/\s+/g, " ").replace(/^[•·]\s*/, "").trim())
+      .filter(Boolean);
+    const field = (pattern: RegExp) => {
+      for (const line of lines) {
+        const found = line.match(pattern);
+        if (found) return found[1].trim() || null;
+      }
+      return null;
+    };
+    const previews = field(/^First Previews?:\s*(.+)$/i);
+    const opening = field(/^Opening(?: Night)?:\s*(.+)$/i);
+    const closing = field(/^Closing(?: Night)?:\s*(.+)$/i);
+    const labelledVenue = field(/^(?:Theatre|Theater|Venue):\s*(.+)$/i);
+    // Off-Broadway entries list the venue as the first unlabelled line.
+    const venue = labelledVenue || lines.slice(1).find((line) => !line.includes(":") && line.length < 120) || null;
+    if (!previews && !opening && !labelledVenue) return;
+    const ticketLink = block.find("a[href]").filter((__, anchor) => {
+      const href = $(anchor).attr("href") || "";
+      return !href.includes("playbill.com");
+    }).last();
+    const articleLink = block.find('a[href*="playbill.com/article"]').first();
+    candidates.push({
+      title: tidyTitle(rawTitle),
+      city: source.city,
+      tier: source.tier,
+      venue,
+      status: source.status,
+      previewsFrom: parseDate(previews),
+      opening: parseDate(opening),
+      closing: parseDate(closing),
+      writer: field(/^(?:Writers?|Playwrights?|Book(?: and [^:]+)?):\s*(.+)$/i),
+      director: field(/^Directors?:\s*(.+)$/i),
+      cast: field(/^(?:Starring|Cast):\s*(.+)$/i),
+      ticketUrl: absoluteUrl(ticketLink.attr("href") || articleLink.attr("href"), source.url),
+      sourceUrl: source.url
+    });
+  });
+  return candidates;
+}
+
+// Squarespace event calendars (The Tank).
+function squarespaceEvents(html: string, source: (typeof sources)[number]): Candidate[] {
+  const $ = cheerio.load(html);
+  const candidates: Candidate[] = [];
+  $("article.eventlist-event--upcoming").each((_, element) => {
+    const card = $(element);
+    const link = card.find(".eventlist-title a, a.eventlist-title-link").first();
+    const title = (link.text() || card.find(".eventlist-title").first().text()).replace(/\s+/g, " ").trim();
+    if (!title || title.length > 160) return;
+    const dates = card.find("time.event-date").map((__, time) => $(time).attr("datetime")).get();
+    candidates.push({
+      title,
+      city: source.city,
+      tier: source.tier,
+      venue: "venue" in source ? source.venue : null,
+      status: source.status,
+      opening: parseDate(dates[0]),
+      closing: parseDate(dates.at(-1)),
+      ticketUrl: absoluteUrl(link.attr("href"), source.url),
+      sourceUrl: source.url
+    });
+  });
+  return candidates;
+}
+
+// Soho Rep's season page: each show is a link with a date range and an <h3> title.
+function sohoRepSeason(html: string, source: (typeof sources)[number]): Candidate[] {
+  const $ = cheerio.load(html);
+  const candidates: Candidate[] = [];
+  $('a[href*="/shows/"]').each((_, element) => {
+    const card = $(element);
+    const title = card.find("h3").first().text().replace(/\s+/g, " ").trim();
+    // Skip transfers elsewhere, e.g. "Watch Me Walk @ Yale Rep".
+    if (!title || title.includes(" @ ")) return;
+    const { opening, closing } = seasonRange(card.find("p").first().text().replace(/\s+/g, " ").trim());
+    const text = card.text().replace(/\s+/g, " ");
+    candidates.push({
+      title,
+      city: source.city,
+      tier: source.tier,
+      venue: "Soho Rep",
+      status: source.status,
+      opening,
+      closing,
+      writer: text.match(/written by ([^,(.]+?)(?:\s*\(|,| and directed| directed|\.)/i)?.[1]?.trim() || null,
+      director: text.match(/directed by ([^,(.]+?)(?:\s*\(|,|\.|$)/i)?.[1]?.trim() || null,
+      ticketUrl: absoluteUrl(card.attr("href"), source.url),
       sourceUrl: source.url
     });
   });
@@ -270,7 +414,7 @@ function genericCards(html: string, source: (typeof sources)[number]): Candidate
   return candidates;
 }
 
-async function fetchSource(source: (typeof sources)[number]) {
+export async function fetchSource(source: (typeof sources)[number]) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 12_000);
   try {
@@ -283,13 +427,15 @@ async function fetchSource(source: (typeof sources)[number]) {
     });
     if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
     const html = await response.text();
-    const raw = source.kind === "playbill-article"
-      ? playbillArticle(html, source)
-      : source.kind === "playbill-cards"
-        ? playbillCards(html, source)
-        : source.kind === "royal-court"
-          ? royalCourt(html, source)
-          : genericCards(html, source);
+    const parsers: Record<string, (page: string, from: typeof source) => Candidate[]> = {
+      "playbill-article": playbillArticle,
+      "playbill-schedule": playbillSchedule,
+      "playbill-cards": playbillCards,
+      "royal-court": royalCourt,
+      "squarespace-events": squarespaceEvents,
+      "soho-rep": sohoRepSeason
+    };
+    const raw = (parsers[source.kind] ?? genericCards)(html, source);
     if (source.kind === "playbill-cards") {
       const detailed = raw.filter(
         (candidate): candidate is Candidate & { detailUrl: string } => Boolean(candidate.detailUrl)

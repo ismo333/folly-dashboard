@@ -243,9 +243,9 @@ export function Dashboard({
       )}
       {guest && (
         <div className="guest-banner">
-          You’re browsing as a guest.{" "}
-          <button className="text-button" onClick={goToSignIn}>Sign in or join</button>
-          {" "}to save favourites, read reviews and add your own.
+          Browsing as a guest ·{" "}
+          <button className="text-button" onClick={goToSignIn}>Sign in</button>
+          {" "}to save shows and read reviews
         </div>
       )}
       {refreshResult && (
