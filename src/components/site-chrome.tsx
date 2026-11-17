@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { FOLLY_PRODUCTIONS_URL } from "@/lib/links";
+import { DONATE_URL, FOLLY_PRODUCTIONS_URL } from "@/lib/links";
 
-// Mirrors the section menu on follyproductions.com, with What's On added.
+// Mirrors the menu on follyproductions.com.
 const SITE_SECTIONS = [
   { id: "hero", title: "Home" },
   { id: "in-development", title: "In Development" },
@@ -86,6 +86,11 @@ export function SiteHeader({
                 <Link href="/" className="active" aria-current="page" onClick={() => setMenuOpen(false)}>
                   What’s On
                 </Link>
+              </li>
+              <li>
+                <a href={DONATE_URL} target="_blank" rel="noopener noreferrer">
+                  Donate
+                </a>
               </li>
             </ul>
             {menuActions.length > 0 && (

@@ -156,8 +156,8 @@ button {
   z-index: 100;
   inset: 0;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   background: var(--ivory);
   color: var(--red);
   animation: site-menu-in 300ms ease;
@@ -168,8 +168,13 @@ button {
   to { opacity: 1; }
 }
 
+.site-menu nav {
+  margin: auto;
+  padding: 88px 0;
+}
+
 .site-menu-close {
-  position: absolute;
+  position: fixed;
   top: 32px;
   right: 32px;
   padding: 0;

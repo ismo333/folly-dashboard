@@ -67,3 +67,8 @@ and Bush Theatre sources used by the original dashboard. It:
 
 Refreshes have a five-minute concurrency guard and run in parallel to stay within
 Vercel’s function duration.
+
+Listings also refresh automatically once a day at 09:00 UTC (4–5am New York,
+9–10am London) through Vercel Cron, configured in `vercel.json`. It calls
+`/api/cron/refresh`, which only runs when Vercel sends the `CRON_SECRET`
+environment variable, so set `CRON_SECRET` in Vercel to any long random string.

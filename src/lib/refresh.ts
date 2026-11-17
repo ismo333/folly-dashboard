@@ -323,7 +323,8 @@ async function fetchSource(source: (typeof sources)[number]) {
   }
 }
 
-export async function refreshListings(profile: Profile): Promise<RefreshSummary> {
+// profile is null when the daily scheduled refresh runs it.
+export async function refreshListings(profile: Profile | null): Promise<RefreshSummary> {
   const sql = db();
   const recent = await sql.query(
     `SELECT id FROM refresh_runs
@@ -336,7 +337,7 @@ export async function refreshListings(profile: Profile): Promise<RefreshSummary>
   const run = await sql.query(
     `INSERT INTO refresh_runs (initiated_by, status)
      VALUES ($1, 'running') RETURNING id`,
-    [profile.id]
+    [profile?.id ?? null]
   );
   const runId = String(run[0].id);
   const summary: RefreshSummary = {
